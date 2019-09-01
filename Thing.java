@@ -1,17 +1,20 @@
+import java.util.*;
+
 public class Thing implements Comparable<Thing> {
 
     private int index;
     private String name;
     private int parent;
-
+    private World world;
+    
     public Thing(){
         /* Default constructor, does nothing */
     }
 
-    public Thing(int index, String name, int parent){
-        this.index = index;
-        this.name = name;
-        this.parent = parent;
+    public Thing(Scanner scannerLine){
+        this.name = scannerLine.next();
+        this.index = scannerLine.nextInt();
+        this.parent = scannerLine.nextInt();
     }
 
     public int compareTo(Thing otherThing){
@@ -38,5 +41,9 @@ public class Thing implements Comparable<Thing> {
 
     public String toString(){
         return name + ":" + index;
+    }
+    
+    public boolean isSeaPort(){
+        return false;
     }
 }

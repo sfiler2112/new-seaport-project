@@ -1,14 +1,117 @@
-import java.util.ArrayList;
+import java.util.*;
 
 public class World extends Thing{
 
+    private ArrayList<SeaPort> ports;
+    PortTime time;
+    
     public World(ArrayList<String> fileLines){
+        Scanner lineScanner;
+        ports = new ArrayList<>();
+        /*
+        * Scan each line and give it to readLine.
+        */
         for(String currentLine: fileLines){
-            readLine(currentLine);
+            lineScanner = new Scanner(currentLine);
+            readLine(lineScanner);
         }
     }
 
-    public void readLine(String line){
-
+    public void readLine(Scanner scannerLine){
+        String objectIdentifier;
+        if(scannerLine.hasNext()){
+            objectIdentifier = scannerLine.next();
+            /*
+             * Based of the objectIdentifier, switch to a case for the object that needs to be built.  If it is not a recognized object or a comment line, print the line to console and continue.
+            */
+            switch (objectIdentifier){
+                case "port":
+                    SeaPort port = new SeaPort(scannerLine, this);
+                    ports.add(port);
+                    break;
+                case "dock":
+                    Dock dock = new Dock(scannerLine, this);
+                    SeaPort dockPort = (SeaPort) searchForIndex(dock.getParent());  // Find the parent SeaPort for the dock
+                    dockPort.addToDocks(dock); // Add the dock to its parent SeaPort
+                    break;
+                case "pship":
+                    PassengerShip pship = new PassengerShip(scannerLine, this);
+                    Thing pshipDestination = searchForIndex(pship.getParent());
+                    /*
+                     * Check if the pship destination is a SeaPort.  Otherwise, it is a dock.  Add the pship to its destination accordingly.
+                    */
+                    if(pshipDestination.isSeaPort()){
+                        SeaPort pshipPort = (SeaPort) pshipDestination;
+                        pshipPort.addShip(pship);
+                    } else {
+                        Dock pshipDock = (Dock) pshipDestination;
+                        pshipDock.addShip(pship);
+                    }
+                    break;
+                case "cship":
+                    CargoShip cship = new CargoShip(scannerLine, this);
+                    Thing cshipDestination = searchForIndex(cship.getParent());
+                    /*
+                     * Check if the cship destination is a SeaPort.  Otherwise, it is a dock.  Add the cship to its destination accordingly.
+                    */
+                    if(cshipDestination.isSeaPort()){
+                        SeaPort cshipPort = (SeaPort) cshipDestination;
+                        cshipPort.addShip(cship);
+                    } else {
+                        Dock cshipDock = (Dock) cshipDestination;
+                        cshipDock.addShip(cship);
+                    }
+                    break;
+                case "person":
+                    Person person = new Person(scannerLine, this);
+                    SeaPort personPort = (SeaPort) searchForIndex(person.getParent());  // Find the parent SeaPort for the dock
+                    personPort.addToPersons(person); // Add the dock to its parent SeaPort
+                    break;
+                case "job":
+                    Job job = new Job(scannerLine, this);
+                    Ship jobShip = (Ship) searchForIndex(job.getParent());  // Find the parent Ship for the job
+                    jobShip.addJob(job); // add the job to its ship
+                    break;
+                case "//":
+                    System.out.println("comment line");
+                    break;
+                default:
+                    System.out.println("invalid object identifier: " + objectIdentifier);
+            }
+        }
+    }
+    
+    public Thing searchForIndex(int targetIndex){
+        /*
+         * Check the ports of the world for matching index
+        */
+        for(SeaPort currentPort: ports){
+            if(currentPort.getIndex() == targetIndex){
+                return currentPort;
+            }
+        }
+        
+        /*
+         * If none of the port indecies matched, run a search within each port
+        */
+        Thing searchResult;
+        for(SeaPort currentPort: ports){
+            searchResult = currentPort.searchForIndex(targetIndex);
+            if(searchResult != null){
+                return searchResult;
+            }
+        }
+        
+        return null; // The target index could not be found
+    }
+    
+    public String toString(){
+        String worldString = "Welcome to the World!\n\n";
+        
+        for(SeaPort currentPort: ports){
+            worldString = worldString + currentPort.toString();
+        }
+        
+        return worldString;
     }
 }

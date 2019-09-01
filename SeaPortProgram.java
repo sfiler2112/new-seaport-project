@@ -20,6 +20,8 @@ public class SeaPortProgram extends JFrame implements ActionListener{
 
     private Path filePath; // holds the path for the file selected by the user.
     private JTextArea worldText = new JTextArea(); //holds the world's toString return value
+    private JTextArea searchResultsText = new JTextArea(); // holds the search results for a name, index, or skill
+    private ButtonGroup searchRadioButtons;
     private World world;
 
     public static void main(String[] args){
@@ -59,6 +61,15 @@ public class SeaPortProgram extends JFrame implements ActionListener{
             case "create new world":
                 System.out.println("create new world button pressed");
                 getDataFile();
+                break;
+            case "search options":
+                System.out.println("search options button pressed");
+                displaySearchOptions();
+                break;
+            case "back":
+                System.out.println("back button pressed");
+                searchResultsText.setText(""); // Clear the search results text area
+                displayWorld();
         }
     }
 
@@ -93,12 +104,12 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         /*
          * Create the search and create new world buttons, add them to the options panel.
          */
-        JButton searchButton = new JButton("Search");
-        searchButton.addActionListener(this);
-        searchButton.setActionCommand("search");
+        JButton searchOptionsButton = new JButton("Search Options");
+        searchOptionsButton.addActionListener(this);
+        searchOptionsButton.setActionCommand("search options");
         gbc.gridy = 0;
         gbc.gridx = 0;
-        optionsPanel.add(searchButton, gbc);
+        optionsPanel.add(searchOptionsButton, gbc);
 
         JButton createNewWorldButton = new JButton("Create New World");
         createNewWorldButton.addActionListener(this);
@@ -141,5 +152,84 @@ public class SeaPortProgram extends JFrame implements ActionListener{
             }
 
         }
+    }
+    
+    public void displaySearchOptions(){ // Sets the content pane to show search options and a text area for search results.  Also has a button to go back to the previous window.
+        this.getContentPane().removeAll();  // Clear the content pane
+        
+        /*
+         * create the Search options panel with radio buttons, text field for search target, and search button.
+        */
+        JPanel searchOptionsPanel = new JPanel(); // Holds the search options: radio button panel with options, text field, search button
+        JPanel searchRadioButtonsPanel = new JPanel(); // Holds the readio buttons for the search options.  Placed in the searchOptions panel.
+        searchOptionsPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        searchOptionsPanel.setBorder(new TitledBorder("Search Options"));
+        
+        JRadioButton nameButton = new JRadioButton("Name");
+        JRadioButton indexButton = new JRadioButton("Index");
+        JRadioButton skillButton = new JRadioButton("Skill");
+        nameButton.setActionCommand("name");
+        indexButton.setActionCommand("index");
+        skillButton.setActionCommand("skill");
+
+        searchRadioButtons = new ButtonGroup();
+        searchRadioButtons.add(nameButton);
+        searchRadioButtons.add(indexButton);
+        searchRadioButtons.add(skillButton);
+        searchRadioButtons.setSelected(nameButton.getModel(), true);
+        
+        searchRadioButtonsPanel.setLayout(new GridLayout(3,1));
+        searchRadioButtonsPanel.add(nameButton);
+        searchRadioButtonsPanel.add(nameButton);
+        searchRadioButtonsPanel.add(indexButton);
+        searchRadioButtonsPanel.add(skillButton);
+        
+        JTextField searchTargetField = new JTextField();
+        searchTargetField.setColumns(15);
+        searchTargetField.requestFocus();
+
+        JButton searchButton = new JButton("Search");
+        searchButton.addActionListener(this);
+        searchButton.setActionCommand("search");
+        
+        searchOptionsPanel.add(searchRadioButtonsPanel);
+        searchOptionsPanel.add(searchTargetField);
+        searchOptionsPanel.add(searchButton);
+        
+        /*
+         * Create search results panel, contains a scroll pane with a text area that updates with the results of the target search
+        */
+        JPanel searchResultsPanel = new JPanel(); // Holds the text area with the search results
+        searchResultsText.setText("");
+        searchResultsPanel.add(searchResultsText);
+        
+        /*
+         * Create back button panel, contains a back button that changes the content pane to display the world again
+        */
+        JPanel backButtonPanel = new JPanel(); // Holds the button that navigates back to the main window that displays all the world information
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(this);
+        backButton.setActionCommand("back");
+        backButtonPanel.add(backButton);
+        
+        /*
+         * Create scroll pane to hold all content
+         */
+        JPanel searchDisplayPanel = new JPanel(); // Holds the searchOptions, searchResults, and backButton panels.
+        searchDisplayPanel.setLayout(new GridBagLayout());
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        searchDisplayPanel.add(searchOptionsPanel, gbc);
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        searchDisplayPanel.add(searchResultsPanel, gbc);
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        searchDisplayPanel.add(backButtonPanel, gbc); 
+        
+
+        this.getContentPane().add(new JPanel().add(new JScrollPane(searchDisplayPanel)));
+        this.pack();
     }
 }
