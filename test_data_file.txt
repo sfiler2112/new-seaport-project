@@ -1,0 +1,22 @@
+// port name index parent(null)
+// port <string> <int> <int>
+port Kandahar 10001 0
+// dock name index parent(port)
+// dock <string> <int> <int>
+dock Pier_5 20001 10001 
+// ship name index parent(dock/port) weight length width draft
+// ship <string> <int> <int> <double> <double> <double> <double>
+ ship Reason 40003 10001 165.91 447.15 85.83 27.07
+// cship name index parent(dock/port) weight length width draft cargoWeight cargoVolume cargoValue
+// cship <string> <int> <int> <double> <double> <double> <double> <double> <double> <double>
+ cship Suites 40003 10001 165.91 447.15 85.83 27.07 125.09 176.80 857.43
+// pship name index parent(dock/port) weight length width draft numPassengers numRooms
+numOccupied
+// pship <string> <int> <int> <double> <double> <double> <double> <int> <int> <int>
+ pship "ZZZ_Hysterics" 30002 20001 103.71 327.92 56.43 30.23 3212 917 917
+// person name index parent skill
+// person <string> <int> <int> <string>
+ person Alberto 50013 10001 cleaner
+// job name index parent duration [skill]* (zero or more, matches skill in person, may repeat)
+// job <string> <int> <int> <double> [<string>]* (ie, zero or more)
+ job Job_10_94_27 60020 30007 77.78 carpenter cleaner clerk
