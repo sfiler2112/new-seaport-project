@@ -21,4 +21,9 @@ public class PassengerShip extends Ship{
         
         this.world = world;
     }
+
+    public String toString(){
+        String pshipString = "Passenger Ship: " + super.toString();
+        return pshipString;
+    }
 }

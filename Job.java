@@ -22,4 +22,24 @@ public class Job extends Thing{
         
         this.world = world;
     }
+
+    public String toString(){
+        String jobString = "Job: " + super.toString();
+        for(String currentRequirement: requirements){
+            jobString = jobString + " " + currentRequirement;
+        }
+        return jobString;
+    }
+
+    public String searchForSkill(String targetSkill){
+        /*
+         * If any of the requirements match the target skill, return the job's toString.
+         */
+        for(String currentRequirement: requirements){
+            if(currentRequirement.equals(targetSkill)){
+                return toString() + "\n";
+            }
+        }
+        return "";
+    }
 }

@@ -37,11 +37,16 @@ public class Dock extends Thing{
         return currentShip;
     }
     
-    public String toString(){
-        String dockString = "\t" + super.toString();
+    public String displayDockString(){
+        String dockString = "      Dock: " + super.toString();
         if(occupied){
-            dockString = dockString  + "\n\t\t" + currentShip.toString();
+            dockString = dockString  + "\n        Current Ship: " + currentShip.toString();
         }
+        return dockString;
+    }
+
+    public String toString(){
+        String dockString = "Dock: " + super.toString();
         return dockString;
     }
 }

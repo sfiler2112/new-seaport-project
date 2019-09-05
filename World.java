@@ -71,6 +71,7 @@ public class World extends Thing{
                     Job job = new Job(scannerLine, this);
                     Ship jobShip = (Ship) searchForIndex(job.getParent());  // Find the parent Ship for the job
                     jobShip.addJob(job); // add the job to its ship
+                    System.out.println(job.toString());
                     break;
                 case "//":
                     System.out.println("comment line");
@@ -79,6 +80,21 @@ public class World extends Thing{
                     System.out.println("invalid object identifier: " + objectIdentifier);
             }
         }
+    }
+
+    public String searchForName(String targetName){
+        /*
+         * Check the ports of the world for matching name, and the objects encapsulated by within the port
+         */
+        String nameSearchResult = "";
+        for(SeaPort currentPort: ports){
+            if(currentPort.getName().equals(targetName)){
+                nameSearchResult = nameSearchResult + currentPort.toString() + "\n";
+            }
+            nameSearchResult = nameSearchResult + currentPort.searchForName(targetName);
+        }
+
+        return nameSearchResult;
     }
     
     public Thing searchForIndex(int targetIndex){
@@ -92,7 +108,7 @@ public class World extends Thing{
         }
         
         /*
-         * If none of the port indecies matched, run a search within each port
+         * If none of the port indices matched, runs a search within each port
         */
         Thing searchResult;
         for(SeaPort currentPort: ports){
@@ -104,12 +120,25 @@ public class World extends Thing{
         
         return null; // The target index could not be found
     }
+
+    public String searchForSkill(String targetSkill){
+        /*
+         * Search all the persons and jobs encapsulated within each port to find matches for the target skill.
+         */
+        String skillSearchResult = "";
+
+        for(SeaPort currentPort: ports){
+            skillSearchResult = skillSearchResult + currentPort.searchForSkill(targetSkill);
+        }
+
+        return skillSearchResult;
+    }
     
-    public String toString(){
-        String worldString = "Welcome to the World!\n\n";
+    public String displayWorldString(){
+        String worldString = "Welcome to the World!\n\nPorts:\n";
         
         for(SeaPort currentPort: ports){
-            worldString = worldString + currentPort.toString();
+            worldString = worldString + currentPort.displayPortString();
         }
         
         return worldString;

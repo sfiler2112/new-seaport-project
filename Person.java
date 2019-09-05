@@ -19,4 +19,13 @@ public class Person extends Thing{
         
         this.world = world;
     }
+
+    public String toString(){
+        String personString = "Person: " + super.toString() + " " + skill;
+        return personString;
+    }
+
+    public String getSkill(){
+        return skill;
+    }
 }

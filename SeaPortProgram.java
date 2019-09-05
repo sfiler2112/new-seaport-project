@@ -21,7 +21,8 @@ public class SeaPortProgram extends JFrame implements ActionListener{
     private Path filePath; // holds the path for the file selected by the user.
     private JTextArea worldText = new JTextArea(); //holds the world's toString return value
     private JTextArea searchResultsText = new JTextArea(); // holds the search results for a name, index, or skill
-    private ButtonGroup searchRadioButtons;
+    private JTextField searchTargetField; // initialized in displaySearchOptions(), user enters the search target in this field
+    private ButtonGroup searchRadioButtons; // initialized in displaySearchOptions(), user selects the type of search to run from these options
     private World world;
 
     public static void main(String[] args){
@@ -62,14 +63,19 @@ public class SeaPortProgram extends JFrame implements ActionListener{
                 System.out.println("create new world button pressed");
                 getDataFile();
                 break;
-            case "search options":
+            case "search options": // Runs when the user selects the search option button from the world info window.
                 System.out.println("search options button pressed");
                 displaySearchOptions();
+                break;
+            case "search": // Runs when the user searches for a target
+                System.out.println("search button pressed");
+                searchWorld();
                 break;
             case "back":
                 System.out.println("back button pressed");
                 searchResultsText.setText(""); // Clear the search results text area
                 displayWorld();
+                break;
         }
     }
 
@@ -90,16 +96,17 @@ public class SeaPortProgram extends JFrame implements ActionListener{
     public void displayWorld(){ // Sets the content pane to display the newly built world and additional options
         this.getContentPane().removeAll();
 
-        JPanel displayPanel = new JPanel(); // This will hold the world text and a panel with additional options (search, create new world).
-        JPanel optionsPanel = new JPanel();
+        JSplitPane displayPane; // This will hold the world text panel and a panel with option buttons
+        JPanel optionsPanel = new JPanel(); // Holds the option buttons for search and create new world
         optionsPanel.setLayout(new GridBagLayout());
-        displayPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
+        /*
+         * Create panel to hold the world text.
+         */
 
-        gbc.gridy = 0;
-        gbc.gridx = 0;
-        displayPanel.add(worldText, gbc);
+        JPanel worldTextPanel = new JPanel();
+        worldTextPanel.add(worldText);
 
         /*
          * Create the search and create new world buttons, add them to the options panel.
@@ -119,18 +126,12 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         optionsPanel.add(createNewWorldButton, gbc);
 
         /*
-         *  Add options panel to the display panel.
+         *  Add world text panel and options panel to the display pane.
          */
-        gbc.gridy = 1;
-        gbc.gridx = 0;
-        displayPanel.add(optionsPanel, gbc);
 
-        /*
-         * Create scroll pane to hold all content
-         */
-        JScrollPane contentScrollPane = new JScrollPane(displayPanel);
+        displayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(worldTextPanel), optionsPanel);
 
-        this.getContentPane().add(new JPanel().add(contentScrollPane));
+        this.getContentPane().add(displayPane);
         this.pack();
     }
 
@@ -146,7 +147,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
 //                    testString = testString + line + "\n";
 //                }
                 world = new World(fileLines);
-                worldText.setText(world.toString());
+                worldText.setText(world.displayWorldString());
             } catch (IOException io){
                 /*Do nothing*/
             }
@@ -161,7 +162,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
          * create the Search options panel with radio buttons, text field for search target, and search button.
         */
         JPanel searchOptionsPanel = new JPanel(); // Holds the search options: radio button panel with options, text field, search button
-        JPanel searchRadioButtonsPanel = new JPanel(); // Holds the readio buttons for the search options.  Placed in the searchOptions panel.
+        JPanel searchRadioButtonsPanel = new JPanel(); // Holds the radio buttons for the search options.  Placed in the searchOptions panel.
         searchOptionsPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         searchOptionsPanel.setBorder(new TitledBorder("Search Options"));
@@ -185,7 +186,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         searchRadioButtonsPanel.add(indexButton);
         searchRadioButtonsPanel.add(skillButton);
         
-        JTextField searchTargetField = new JTextField();
+        searchTargetField = new JTextField();
         searchTargetField.setColumns(15);
         searchTargetField.requestFocus();
 
@@ -198,38 +199,90 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         searchOptionsPanel.add(searchButton);
         
         /*
-         * Create search results panel, contains a scroll pane with a text area that updates with the results of the target search
+         * Create search panel, contains the text area with the search results and the search options panel
         */
-        JPanel searchResultsPanel = new JPanel(); // Holds the text area with the search results
+        JPanel searchPanel = new JPanel();
+        searchPanel.setLayout(new GridBagLayout());
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        searchPanel.add(searchOptionsPanel, gbc);
         searchResultsText.setText("");
-        searchResultsPanel.add(searchResultsText);
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        searchPanel.add(searchResultsText,gbc);
         
         /*
          * Create back button panel, contains a back button that changes the content pane to display the world again
         */
         JPanel backButtonPanel = new JPanel(); // Holds the button that navigates back to the main window that displays all the world information
+        backButtonPanel.setLayout(new GridBagLayout());
         JButton backButton = new JButton("Back");
         backButton.addActionListener(this);
         backButton.setActionCommand("back");
         backButtonPanel.add(backButton);
-        
-        /*
-         * Create scroll pane to hold all content
-         */
-        JPanel searchDisplayPanel = new JPanel(); // Holds the searchOptions, searchResults, and backButton panels.
-        searchDisplayPanel.setLayout(new GridBagLayout());
-        gbc.gridy = 0;
-        gbc.gridx = 0;
-        searchDisplayPanel.add(searchOptionsPanel, gbc);
-        gbc.gridy = 1;
-        gbc.gridx = 0;
-        searchDisplayPanel.add(searchResultsPanel, gbc);
-        gbc.gridy = 2;
-        gbc.gridx = 0;
-        searchDisplayPanel.add(backButtonPanel, gbc); 
-        
 
-        this.getContentPane().add(new JPanel().add(new JScrollPane(searchDisplayPanel)));
+        /*
+         * Create the split pane that holds the search panel and the back button panel
+         */
+
+        JSplitPane searchDisplayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(searchPanel), backButtonPanel);
+        this.getContentPane().add(searchDisplayPane);
         this.pack();
+    }
+
+    public void searchWorld(){
+        searchResultsText.setText("");  // Clear any previous search results or error messages from the search results area.
+        String searchType = searchRadioButtons.getSelection().getActionCommand(); // Get the ActionCommand string for the search radio button that is currently selected.  Default choice is name.
+        System.out.println(searchType);
+        String searchTarget = searchTargetField.getText().trim(); // Get the text provided in the searchTargetField with any leading or trailing space removed.
+
+        /*
+         * Switch statement uses the searchType to determine what type of search method the world will use.  If the
+         * search target field is empty or an invalid target, prints an error message in searchResults Text
+         */
+        if(searchTarget.equals("")){ // Check to see if text was provided by the user.
+            System.out.println("invalid search target: no target provided.");
+            searchResultsText.setText("No search target was provided.  Please provide a valid target.");
+        } else {
+            System.out.println("search target text provided: " + searchTarget);
+            switch(searchType){
+                case "name":
+                    String nameSearchResults = world.searchForName(searchTarget).trim();
+                    if(nameSearchResults.equals("")){
+                        System.out.println("nothing matched the provided name");
+                        searchResultsText.setText("No matches found for the provided name.");
+                    } else {
+                        System.out.println("match found for provided name");
+                        searchResultsText.setText(nameSearchResults);
+                    }
+                    break;
+                case "index":
+                    try{ // Check to make sure the text provided is a number, otherwise throw a NumberFormatException
+                        Thing thingFound = world.searchForIndex(Integer.valueOf(searchTarget));
+                        if(thingFound == null){
+                            System.out.println("nothing matched the provided index");
+                            searchResultsText.setText("No matches found for the provided index.");
+                        } else {
+                            System.out.println("match found for provided index");
+                            searchResultsText.setText(thingFound.toString());
+                        }
+                    } catch (NumberFormatException nfe){
+                        System.out.println("invalid search target: invalid target for index search provided");
+                        searchResultsText.setText("Invalid target provided for index search.  Please provide an integer value.");
+                    }
+                    break;
+                case "skill":
+                    String skillSearchResult = world.searchForSkill(searchTarget).trim();
+                    if(skillSearchResult.equals("")){
+                        System.out.println("nothing matched the provided skill");
+                        searchResultsText.setText("No matches found for the provided skill.");
+                    } else {
+                        System.out.println("match found for provided skill");
+                        searchResultsText.setText(skillSearchResult);
+                    }
+                    break;
+            }
+        }
+        this.pack(); // Resize the window to fit new search results or error message in the search results text area.
     }
 }

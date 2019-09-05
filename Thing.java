@@ -40,9 +40,9 @@ public class Thing implements Comparable<Thing> {
     }
 
     public String toString(){
-        return name + ":" + index;
+        return name + " " + index;
     }
-    
+
     public boolean isSeaPort(){
         return false;
     }

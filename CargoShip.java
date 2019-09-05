@@ -21,4 +21,9 @@ public class CargoShip extends Ship{
         
         this.world = world;
     }
+
+    public String toString(){
+        String cshipString = "Cargo Ship: " + super.toString();
+        return cshipString;
+    }
 }

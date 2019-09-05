@@ -14,7 +14,6 @@ public class Ship extends Thing{
     private double weight;
     private double width;
     private ArrayList<Job> jobs;
-    private World world;
     
     public Ship(Scanner scannerLine){
         super(scannerLine);
@@ -30,6 +29,32 @@ public class Ship extends Thing{
     public void addJob(Job newJob){
         jobs.add(newJob);
     }
+
+    public boolean hasJobs(){
+        /*
+         * Return true if the ship has an jobs, false if it does not
+         */
+        if(jobs.isEmpty()){
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public String searchForName(String targetName){
+        /*
+         * Check the jobs assigned to this ship for a name match.
+         */
+        String searchResult = "";
+
+        for(Job currentJob: jobs){
+            if(currentJob.getName().equals(targetName)){
+                searchResult = searchResult + currentJob.toString() + "\n";
+            }
+        }
+
+        return searchResult;
+    }
     
     public Thing searchForIndex(int targetIndex){
         /*
@@ -42,5 +67,18 @@ public class Ship extends Thing{
         }
         
         return null; // If a match was not found, return null.
+    }
+
+    public String searchForSkill(String targetSkill){
+        /*
+         * If a job has a requirement that matches the target skill, add that job to the search results
+         */
+        String searchResult = "";
+
+        for(Job currentJob: jobs){
+            searchResult = searchResult + currentJob.searchForSkill(targetSkill);
+        }
+
+        return searchResult;
     }
 }
