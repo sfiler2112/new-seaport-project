@@ -1,0 +1,14 @@
+
+port Lanshan 10000 0
+dock Pier_3 20003 10000 
+dock Pier_2 20002 10000 
+dock Archie 20001 10000 
+ pship Preanesthetic 30003 20003 149.85 483.92 125.71 31.21 166 409 83
+ pship Shoetrees 30002 20002 134.41 156.96 120.31 35.20 1673 633 633
+ person Sara 50000 10000 electrician
+ person Duane 50002 10000 inspector
+ person Betsy 50004 10000 cleaner
+ person Archie 50003 10000 captain
+ person Thomas 50001 10000 clerk
+ person Archie 50005 10000 artist
+job Job_10_94_27 60020 30002 77.78 cleaner clerk
