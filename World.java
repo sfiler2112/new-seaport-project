@@ -3,11 +3,13 @@ import java.util.*;
 public class World extends Thing{
 
     private ArrayList<SeaPort> ports;
-    PortTime time;
+    private PortTime time;
+    private TreeMap<Integer,Thing> worldTreeMap;
     
     public World(ArrayList<String> fileLines){
         Scanner lineScanner;
         ports = new ArrayList<>();
+        worldTreeMap = new TreeMap<>();
         /*
         * Scan each line and give it to readLine.
         */
@@ -15,6 +17,8 @@ public class World extends Thing{
             lineScanner = new Scanner(currentLine);
             readLine(lineScanner);
         }
+
+        System.out.println("world tree size: " + worldTreeMap.size());
     }
 
     public void readLine(Scanner scannerLine){
@@ -28,11 +32,13 @@ public class World extends Thing{
                 case "port":
                     SeaPort port = new SeaPort(scannerLine, this);
                     ports.add(port);
+                    worldTreeMap.put(port.getIndex(), port); // adding a port to the worldTreeMap, index should be 10000-19999
                     break;
                 case "dock":
                     Dock dock = new Dock(scannerLine, this);
                     SeaPort dockPort = (SeaPort) searchForIndex(dock.getParent());  // Find the parent SeaPort for the dock
                     dockPort.addToDocks(dock); // Add the dock to its parent SeaPort
+                    worldTreeMap.put(dock.getIndex(), dock); // Add the port to the worldTreeMap.  Index is between 20000-29999
                     break;
                 case "pship":
                     PassengerShip pship = new PassengerShip(scannerLine, this);
@@ -47,6 +53,7 @@ public class World extends Thing{
                         Dock pshipDock = (Dock) pshipDestination;
                         pshipDock.addShip(pship);
                     }
+                    worldTreeMap.put(pship.getIndex(), pship); // Add the pship to the worldTreeMap
                     break;
                 case "cship":
                     CargoShip cship = new CargoShip(scannerLine, this);

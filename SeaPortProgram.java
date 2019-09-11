@@ -226,6 +226,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
          */
 
         JSplitPane searchDisplayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(searchPanel), backButtonPanel);
+        searchDisplayPane.setResizeWeight(1);
         this.getContentPane().add(searchDisplayPane);
         this.pack();
     }
