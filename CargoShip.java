@@ -10,16 +10,13 @@ public class CargoShip extends Ship{
     private double cargoValue;
     private double cargoVolume;
     private double cargoWeight;
-    private World world;
     
-    public CargoShip(Scanner scannerLine, World world){
-        super(scannerLine);
+    public CargoShip(String name, Scanner scannerLine){
+        super(name, scannerLine);
         
         cargoValue = scannerLine.nextDouble();
         cargoVolume = scannerLine.nextDouble();
         cargoWeight = scannerLine.nextDouble();
-        
-        this.world = world;
     }
 
     public String toString(){

@@ -9,15 +9,13 @@ import java.util.*;
 public class Person extends Thing{
     private String skill;
     private boolean busy;
-    private World world;
     
-    public Person(Scanner scannerLine, World world){
-        super(scannerLine);
+    public Person(String name, Scanner scannerLine){
+        super(name, scannerLine);
         
         busy = false;
         skill = scannerLine.next();
-        
-        this.world = world;
+
     }
 
     public String toString(){

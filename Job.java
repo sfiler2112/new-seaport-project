@@ -9,18 +9,15 @@ import java.util.*;
 public class Job extends Thing{
     private double duration;
     private ArrayList<String> requirements;
-    private World world;
     
-    public Job(Scanner scannerLine, World world){
-        super(scannerLine);
+    public Job(String name, Scanner scannerLine){
+        super(name, scannerLine);
         
         duration = scannerLine.nextDouble();
         requirements = new ArrayList<>();
         while(scannerLine.hasNext()){
             requirements.add(scannerLine.next());
         }
-        
-        this.world = world;
     }
 
     public String toString(){

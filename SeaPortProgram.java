@@ -23,6 +23,10 @@ public class SeaPortProgram extends JFrame implements ActionListener{
     private JTextArea searchResultsText = new JTextArea(); // holds the search results for a name, index, or skill
     private JTextField searchTargetField; // initialized in displaySearchOptions(), user enters the search target in this field
     private ButtonGroup searchRadioButtons; // initialized in displaySearchOptions(), user selects the type of search to run from these options
+    String categoryArray[];  // initialized in displaySortOptions(), sets the categories that require buttons
+    private ButtonGroup categoryRadioButtons; // initialized in displaySortOptions(), user selects the category to sort from these options
+    private JTextArea sortResultsText = new JTextArea();  // holds the sort results for a category and sort-by option
+    private JPanel sortOptionButtonsPanel; // Will hold sort options depending on the category selected.  Updated with the method updateSortOptionButtonsPanel(String category)
     private World world;
 
     public static void main(String[] args){
@@ -109,7 +113,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         worldTextPanel.add(worldText);
 
         /*
-         * Create the search and create new world buttons, add them to the options panel.
+         * Create the search, sort, and create new world buttons, add them to the options panel.
          */
         JButton searchOptionsButton = new JButton("Search Options");
         searchOptionsButton.addActionListener(this);
@@ -118,11 +122,18 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         gbc.gridx = 0;
         optionsPanel.add(searchOptionsButton, gbc);
 
+        JButton sortOptionsButton = new JButton("Sort Options");
+        sortOptionsButton.addActionListener(this);
+        sortOptionsButton.setActionCommand("sort options");
+        gbc.gridy = 0;
+        gbc.gridx = 1;
+        optionsPanel.add(sortOptionsButton, gbc);
+
         JButton createNewWorldButton = new JButton("Create New World");
         createNewWorldButton.addActionListener(this);
         createNewWorldButton.setActionCommand("create new world");
         gbc.gridy = 0;
-        gbc.gridx = 1;
+        gbc.gridx = 2;
         optionsPanel.add(createNewWorldButton, gbc);
 
         /*
@@ -154,6 +165,37 @@ public class SeaPortProgram extends JFrame implements ActionListener{
 
         }
     }
+
+    public void displaySortOptions(){ // Sets the content pane to show the category selection (radio buttons) and corresponding sort options for each category. Also has button to go back to world display
+        this.getContentPane().removeAll(); // Clear the content pane
+        JPanel sortPanel = new JPanel();
+        JPanel categoryButtonsPanel = new JPanel(); // select category...
+        sortOptionButtonsPanel = new JPanel(); // sort by..
+        /*
+         * Create the category select panel with radio buttons for each category: All, SeaPorts, Docks, Ships, Persons, Jobs.
+         */
+        categoryArray = new String[]{"All","Seaports","Docks","Ships","Persons","Jobs"};
+        /*
+         * Create for loop to go through each entry in categoryArray, make a radio button for the button group, and add an action command to that button, add that button to the panel
+         */
+        categoryRadioButtons = new ButtonGroup();
+        String currentCategory = categoryArray[0];
+        JRadioButton tempButton = new JRadioButton(currentCategory);
+        categoryRadioButtons.add(tempButton); // Add the first option to the categories panel, "All'
+        categoryRadioButtons.setSelected(tempButton.getModel(), true); // Make "All" the default category.
+        for(int i = 1; i < categoryArray.length; i++){
+            currentCategory = categoryArray[i];
+            tempButton = new JRadioButton(currentCategory);
+            tempButton.setActionCommand(currentCategory);
+            categoryRadioButtons.add(tempButton);
+        }
+        categoryRadioButtons.setSelected(categoryRadioButtons.g)
+
+    }
+
+    /*
+     * Create a method to retrieve an appropriate panel with options for a particular category.  retrieveSortOptionPanel(String option)?
+     */
     
     public void displaySearchOptions(){ // Sets the content pane to show search options and a text area for search results.  Also has a button to go back to the previous window.
         this.getContentPane().removeAll();  // Clear the content pane
@@ -181,7 +223,6 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         searchRadioButtons.setSelected(nameButton.getModel(), true);
         
         searchRadioButtonsPanel.setLayout(new GridLayout(3,1));
-        searchRadioButtonsPanel.add(nameButton);
         searchRadioButtonsPanel.add(nameButton);
         searchRadioButtonsPanel.add(indexButton);
         searchRadioButtonsPanel.add(skillButton);

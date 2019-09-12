@@ -4,12 +4,12 @@ public class World extends Thing{
 
     private ArrayList<SeaPort> ports;
     private PortTime time;
-    private TreeMap<Integer,Thing> worldTreeMap;
+    private HashMap<Integer,Thing> worldHashMap;
     
     public World(ArrayList<String> fileLines){
         Scanner lineScanner;
         ports = new ArrayList<>();
-        worldTreeMap = new TreeMap<>();
+        worldHashMap = new HashMap<>();
         /*
         * Scan each line and give it to readLine.
         */
@@ -18,31 +18,42 @@ public class World extends Thing{
             readLine(lineScanner);
         }
 
-        System.out.println("world tree size: " + worldTreeMap.size());
+        System.out.println("world tree size: " + worldHashMap.size());
     }
 
     public void readLine(Scanner scannerLine){
         String objectIdentifier;
+        String objectName;
+        int objectIndex;
         if(scannerLine.hasNext()){
-            objectIdentifier = scannerLine.next();
             /*
-             * Based of the objectIdentifier, switch to a case for the object that needs to be built.  If it is not a recognized object or a comment line, print the line to console and continue.
-            */
-            switch (objectIdentifier){
+             * Read first item from the scannerLine
+             */
+            objectIdentifier = scannerLine.next();
+
+            switch (objectIdentifier){ // Based of the objectIdentifier, switch to a case for the object that needs to be built.  If it is not a recognized object or a comment line, print the line to console and continue.
                 case "port":
-                    SeaPort port = new SeaPort(scannerLine, this);
+                    objectName = scannerLine.next();
+                    objectIndex = scannerLine.nextInt();
+                    SeaPort port = new SeaPort(objectName, scannerLine, this);
+                    worldHashMap.put(objectIndex, port);// adding a port to the worldHashMap, index should be 10000-19999
                     ports.add(port);
-                    worldTreeMap.put(port.getIndex(), port); // adding a port to the worldTreeMap, index should be 10000-19999
+                    System.out.println("port added. index: " + objectIndex);
                     break;
                 case "dock":
-                    Dock dock = new Dock(scannerLine, this);
-                    SeaPort dockPort = (SeaPort) searchForIndex(dock.getParent());  // Find the parent SeaPort for the dock
-                    dockPort.addToDocks(dock); // Add the dock to its parent SeaPort
-                    worldTreeMap.put(dock.getIndex(), dock); // Add the port to the worldTreeMap.  Index is between 20000-29999
+                    objectName = scannerLine.next();
+                    objectIndex = scannerLine.nextInt();
+                    Dock dock = new Dock(objectName, scannerLine, this);
+                    SeaPort dockPort = (SeaPort) worldHashMap.get(dock.getParent());
+                    dockPort.addToDocks(dock);
+                    worldHashMap.put(objectIndex, dock);// adding a dock to the worldHashMap, index should be 20000-29999
+                    System.out.println("dock added. index: " + objectIndex);
                     break;
                 case "pship":
-                    PassengerShip pship = new PassengerShip(scannerLine, this);
-                    Thing pshipDestination = searchForIndex(pship.getParent());
+                    objectName = scannerLine.next();
+                    objectIndex = scannerLine.nextInt();
+                    PassengerShip pship = new PassengerShip(objectName, scannerLine);
+                    Thing pshipDestination = worldHashMap.get(pship.getParent());
                     /*
                      * Check if the pship destination is a SeaPort.  Otherwise, it is a dock.  Add the pship to its destination accordingly.
                     */
@@ -53,11 +64,14 @@ public class World extends Thing{
                         Dock pshipDock = (Dock) pshipDestination;
                         pshipDock.addShip(pship);
                     }
-                    worldTreeMap.put(pship.getIndex(), pship); // Add the pship to the worldTreeMap
+                    worldHashMap.put(objectIndex, pship); // Add the pship to the worldHashMap.  Index is between 30000-39999.
+                    System.out.println("pship added. index: " + objectIndex);
                     break;
                 case "cship":
-                    CargoShip cship = new CargoShip(scannerLine, this);
-                    Thing cshipDestination = searchForIndex(cship.getParent());
+                    objectName = scannerLine.next();
+                    objectIndex = scannerLine.nextInt();
+                    CargoShip cship = new CargoShip(objectName, scannerLine);
+                    Thing cshipDestination = worldHashMap.get(cship.getParent());
                     /*
                      * Check if the cship destination is a SeaPort.  Otherwise, it is a dock.  Add the cship to its destination accordingly.
                     */
@@ -68,17 +82,26 @@ public class World extends Thing{
                         Dock cshipDock = (Dock) cshipDestination;
                         cshipDock.addShip(cship);
                     }
+                    worldHashMap.put(objectIndex, cship); // Add the cship to the worldHashMap.  Index is between 40000-49999.
+                    System.out.println("cship added. index: " + objectIndex);
                     break;
                 case "person":
-                    Person person = new Person(scannerLine, this);
-                    SeaPort personPort = (SeaPort) searchForIndex(person.getParent());  // Find the parent SeaPort for the dock
+                    objectName = scannerLine.next();
+                    objectIndex = scannerLine.nextInt();
+                    Person person = new Person(objectName, scannerLine);
+                    SeaPort personPort = (SeaPort) worldHashMap.get(person.getParent());
                     personPort.addToPersons(person); // Add the dock to its parent SeaPort
+                    worldHashMap.put(objectIndex, person); // Add person to the worldHashMap.  Index is between 50000-59999
+                    System.out.println("person added. index: " + objectIndex);
                     break;
                 case "job":
-                    Job job = new Job(scannerLine, this);
-                    Ship jobShip = (Ship) searchForIndex(job.getParent());  // Find the parent Ship for the job
+                    objectName = scannerLine.next();
+                    objectIndex = scannerLine.nextInt();
+                    Job job = new Job(objectName, scannerLine);
+                    Ship jobShip = (Ship) worldHashMap.get(job.getParent());  // Find the parent Ship for the job
                     jobShip.addJob(job); // add the job to its ship
-                    System.out.println(job.toString());
+                    worldHashMap.put(objectIndex, job); // Add job to the worldHashMap.  Index is between 60000-69999
+                    System.out.println("job added. index: " + objectIndex);
                     break;
                 case "//":
                     System.out.println("comment line");
@@ -106,23 +129,11 @@ public class World extends Thing{
     
     public Thing searchForIndex(int targetIndex){
         /*
-         * Check the ports of the world for matching index
+         * Check the worldHashMap for matching index
         */
-        for(SeaPort currentPort: ports){
-            if(currentPort.getIndex() == targetIndex){
-                return currentPort;
-            }
-        }
-        
-        /*
-         * If none of the port indices matched, runs a search within each port
-        */
-        Thing searchResult;
-        for(SeaPort currentPort: ports){
-            searchResult = currentPort.searchForIndex(targetIndex);
-            if(searchResult != null){
-                return searchResult;
-            }
+
+        if(worldHashMap.containsKey(targetIndex)){
+            return worldHashMap.get(targetIndex);
         }
         
         return null; // The target index could not be found
@@ -149,5 +160,9 @@ public class World extends Thing{
         }
         
         return worldString;
+    }
+
+    public HashMap<Integer, Thing> getWorldHashMap(){
+        return worldHashMap;
     }
 }

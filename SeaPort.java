@@ -14,15 +14,25 @@ public class SeaPort extends Thing{
     ArrayList<Person> persons;
     World world;
     
-    public SeaPort(Scanner scannerLine, World world){
-        super(scannerLine);
+//    public SeaPort(Scanner scannerLine, World world){
+//        super(scannerLine);
+//        this.world = world;
+//
+//        docks = new ArrayList<>();
+//        ships = new ArrayList<>();
+//        shipQueue = new ArrayList<>();
+//        persons = new ArrayList<>();
+//    }
+
+    public SeaPort(String name, Scanner scannerLine, World world){
+        super(name, scannerLine);
         this.world = world;
-        
         docks = new ArrayList<>();
         ships = new ArrayList<>();
         shipQueue = new ArrayList<>();
         persons = new ArrayList<>();
     }
+
     
     public void addToDocks(Dock dock){
         docks.add(dock);
@@ -74,41 +84,41 @@ public class SeaPort extends Thing{
         return nameSearchResult;
     }
     
-    public Thing searchForIndex(int targetIndex){
-        /*
-         * Search ArrayLists (docks, ships, persons) for the targetIndex.  If a match is found, return that thing.
-        */
-        for(Dock currentDock: docks){
-            if(currentDock.getIndex() == targetIndex){
-                return currentDock;
-            }
-        }
-        
-        for(Ship currentShip: ships){
-            if(currentShip.getIndex() == targetIndex){
-                return currentShip;
-            }
-        }
-        
-        for(Person currentPerson: persons){
-            if(currentPerson.getIndex() == targetIndex){
-                return currentPerson;
-            }
-        }
-        
-        /*
-         * If the index has not been matched, run a search on the jobs for each ship.
-        */
-        Thing searchResult;
-        for(Ship currentShip: ships){
-            searchResult = currentShip.searchForIndex(targetIndex);
-            if(searchResult != null){
-                return searchResult;
-            }
-        }
-        
-        return null; // return null if no match for the target index is found
-    }
+//    public Thing searchForIndex(int targetIndex){
+//        /*
+//         * Search ArrayLists (docks, ships, persons) for the targetIndex.  If a match is found, return that thing.
+//        */
+//        for(Dock currentDock: docks){
+//            if(currentDock.getIndex() == targetIndex){
+//                return currentDock;
+//            }
+//        }
+//
+//        for(Ship currentShip: ships){
+//            if(currentShip.getIndex() == targetIndex){
+//                return currentShip;
+//            }
+//        }
+//
+//        for(Person currentPerson: persons){
+//            if(currentPerson.getIndex() == targetIndex){
+//                return currentPerson;
+//            }
+//        }
+//
+//        /*
+//         * If the index has not been matched, run a search on the jobs for each ship.
+//        */
+//        Thing searchResult;
+//        for(Ship currentShip: ships){
+//            searchResult = currentShip.searchForIndex(targetIndex);
+//            if(searchResult != null){
+//                return searchResult;
+//            }
+//        }
+//
+//        return null; // return null if no match for the target index is found
+//    }
 
     public String searchForSkill(String targetSkill){
         /*
@@ -154,5 +164,9 @@ public class SeaPort extends Thing{
     public String toString(){
         String portString = "SeaPort: " + super.toString();
         return portString;
+    }
+
+    public void setWorld(World world){
+        this.world = world;
     }
 }

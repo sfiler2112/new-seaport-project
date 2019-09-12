@@ -12,13 +12,21 @@ public class Dock extends Thing{
     private World world;
     private SeaPort port;
     
-    public Dock(Scanner scannerLine, World world){
-        super(scannerLine);
+//    public Dock(Scanner scannerLine, World world){
+//        super(scannerLine);
+//        this.world = world;
+//        port = (SeaPort) world.searchForIndex(super.getParent()); //Set the port for this dock by searching the World for the parent index.
+//        currentShip = null;
+//        occupied = false;
+//    }
+
+    public Dock(String name, Scanner scannerLine, World world){
+        super(name, scannerLine);
         this.world = world;
-        port = (SeaPort) world.searchForIndex(super.getParent()); //Set the port for this dock by searching the World for the parent index.
+        port = (SeaPort) world.getWorldHashMap().get(this.getParent());  // Get the parent SeaPort from the world hash map using the dock's parent index value.
         currentShip = null;
         occupied = false;
-    } 
+    }
     
     public void addShip(Ship ship){ // Only used when building the world.  Otherwise, setShip should be used.
         /*

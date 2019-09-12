@@ -10,16 +10,13 @@ public class PassengerShip extends Ship{
     private int numberOfOccupiedRooms;
     private int numberOfPassengers;
     private int numberOfRooms;
-    private World world;
     
-    public PassengerShip(Scanner scannerLine, World world){
-        super(scannerLine);
+    public PassengerShip(String name, Scanner scannerLine){
+        super(name, scannerLine);
         
         numberOfOccupiedRooms = scannerLine.nextInt();
         numberOfPassengers = scannerLine.nextInt();
         numberOfRooms = scannerLine.nextInt();
-        
-        this.world = world;
     }
 
     public String toString(){

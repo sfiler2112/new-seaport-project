@@ -15,14 +15,24 @@ public class Ship extends Thing{
     private double width;
     private ArrayList<Job> jobs;
     
-    public Ship(Scanner scannerLine){
-        super(scannerLine);
-        
+//    public Ship(Scanner scannerLine){
+//        super(scannerLine);
+//
+//        draft = scannerLine.nextDouble();
+//        length = scannerLine.nextDouble();
+//        weight = scannerLine.nextDouble();
+//        width = scannerLine.nextDouble();
+//
+//        jobs = new ArrayList<>();
+//    }
+
+    public Ship(String name, Scanner scannerLine){
+        super(name, scannerLine);
         draft = scannerLine.nextDouble();
         length = scannerLine.nextDouble();
         weight = scannerLine.nextDouble();
         width = scannerLine.nextDouble();
-            
+
         jobs = new ArrayList<>();
     }
     
@@ -56,18 +66,18 @@ public class Ship extends Thing{
         return searchResult;
     }
     
-    public Thing searchForIndex(int targetIndex){
-        /*
-         * If a job's index matches the targetIndex, return that job.  
-        */
-        for(Job currentJob: jobs){
-            if(currentJob.getIndex() == targetIndex){
-                return currentJob;
-            }
-        }
-        
-        return null; // If a match was not found, return null.
-    }
+//    public Thing searchForIndex(int targetIndex){
+//        /*
+//         * If a job's index matches the targetIndex, return that job.
+//        */
+//        for(Job currentJob: jobs){
+//            if(currentJob.getIndex() == targetIndex){
+//                return currentJob;
+//            }
+//        }
+//
+//        return null; // If a match was not found, return null.
+//    }
 
     public String searchForSkill(String targetSkill){
         /*
