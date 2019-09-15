@@ -17,11 +17,9 @@ public class World extends Thing{
             lineScanner = new Scanner(currentLine);
             readLine(lineScanner);
         }
-
-        System.out.println("world tree size: " + worldHashMap.size());
     }
 
-    public void readLine(Scanner scannerLine){
+    private void readLine(Scanner scannerLine){
         String objectIdentifier;
         String objectName;
         int objectIndex;
@@ -152,6 +150,32 @@ public class World extends Thing{
         return skillSearchResult;
     }
     
+    public void categorizedSort(String sortCategory, String sortOption){
+        
+        /*
+         * Select desired sorting to use based on the category. 
+        */
+        switch(sortCategory){
+            case "All":
+                Collections.sort(ports, new NameComparator());
+                for(SeaPort currentPort: ports){
+                    currentPort.sortAllByName();
+                }
+                break;
+            case "Ships":
+                for(SeaPort currentPort: ports){
+                    currentPort.sortShips(sortOption);
+                }
+                break;
+            case "Persons":
+                for(SeaPort currentPort: ports){
+                    currentPort.sortPersons(sortOption);
+                }
+                break;
+        }
+    }
+    
+
     public String displayWorldString(){
         String worldString = "Welcome to the World!\n\nPorts:\n";
         

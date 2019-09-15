@@ -56,6 +56,49 @@ public class SeaPort extends Thing{
     public boolean isSeaPort(){
         return true;
     }
+    
+    public void sortShips(String sortOption){
+        switch(sortOption){ //determines what kind of sort to do on the ship related ArrayLists based on the sort option string.
+            case "name sort":
+                System.out.println("running name sort on ships");
+                Collections.sort(ships, new NameComparator());
+                Collections.sort(shipQueue, new NameComparator());
+                break;
+            case "draft sort":
+                System.out.println("running draft sort on ships");
+                Collections.sort(ships, new DraftComparator());
+                Collections.sort(shipQueue, new DraftComparator());
+                break;
+            case "length sort":
+                System.out.println("running length sort on ships");
+                Collections.sort(ships, new LengthComparator());
+                Collections.sort(shipQueue, new LengthComparator());
+                break;
+            case "weight sort":
+                System.out.println("running weight sort on ships");
+                Collections.sort(ships, new WeightComparator());
+                Collections.sort(shipQueue, new WeightComparator());
+                break;
+            case "width sort":
+                System.out.println("running width sort on ships");
+                Collections.sort(ships, new WidthComparator());
+                Collections.sort(shipQueue, new WidthComparator());
+                break;
+        }
+    }
+    
+    public void sortPersons(String sortOption){
+        switch(sortOption){
+            case "name sort":
+                System.out.println("running name sort on persons");
+                Collections.sort(persons, new NameComparator());
+                break;
+            case "skill sort":
+                System.out.println("running skill sort on persons");
+                Collections.sort(persons, new SkillComparator());
+                break;
+        }
+    }
 
     public String searchForName(String targetName){
         /*
@@ -83,42 +126,6 @@ public class SeaPort extends Thing{
 
         return nameSearchResult;
     }
-    
-//    public Thing searchForIndex(int targetIndex){
-//        /*
-//         * Search ArrayLists (docks, ships, persons) for the targetIndex.  If a match is found, return that thing.
-//        */
-//        for(Dock currentDock: docks){
-//            if(currentDock.getIndex() == targetIndex){
-//                return currentDock;
-//            }
-//        }
-//
-//        for(Ship currentShip: ships){
-//            if(currentShip.getIndex() == targetIndex){
-//                return currentShip;
-//            }
-//        }
-//
-//        for(Person currentPerson: persons){
-//            if(currentPerson.getIndex() == targetIndex){
-//                return currentPerson;
-//            }
-//        }
-//
-//        /*
-//         * If the index has not been matched, run a search on the jobs for each ship.
-//        */
-//        Thing searchResult;
-//        for(Ship currentShip: ships){
-//            searchResult = currentShip.searchForIndex(targetIndex);
-//            if(searchResult != null){
-//                return searchResult;
-//            }
-//        }
-//
-//        return null; // return null if no match for the target index is found
-//    }
 
     public String searchForSkill(String targetSkill){
         /*
@@ -139,6 +146,17 @@ public class SeaPort extends Thing{
         return searchResult;
     }
     
+    public void sortAllByName(){
+        Collections.sort(docks, new NameComparator());
+        Collections.sort(ships, new NameComparator());
+        Collections.sort(shipQueue, new NameComparator());
+        Collections.sort(persons, new NameComparator());
+//        
+//        for(Ship currentShip: ships){
+//            currentShip.sortJobsByName();
+//        }
+    }
+    
     public String displayPortString(){
         String portString ="  SeaPort: " + super.toString() + "\n";
         portString = portString + "    Docks:\n";
@@ -157,7 +175,7 @@ public class SeaPort extends Thing{
         for(Ship currentShip: ships){
             portString = portString + "      " + currentShip.toString() + "\n";
         }
-        
+        portString = portString + "\n\n";
         return portString;
     }
 

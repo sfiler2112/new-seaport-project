@@ -26,7 +26,8 @@ public class SeaPortProgram extends JFrame implements ActionListener{
     String categoryArray[];  // initialized in displaySortOptions(), sets the categories that require buttons
     private ButtonGroup categoryRadioButtons; // initialized in displaySortOptions(), user selects the category to sort from these options
     private JTextArea sortResultsText = new JTextArea();  // holds the sort results for a category and sort-by option
-    private JPanel sortOptionButtonsPanel; // Will hold sort options depending on the category selected.  Updated with the method updateSortOptionButtonsPanel(String category)
+    private JPanel sortOptionButtonsPanel; // Will hold sort options depending on the category selected.  Updated with the method retrieveSortOptionButtonsPanel(String category)
+    private ButtonGroup sortOptionRadioButtons; // initialized in retrieveSortOptionButtonsPanel();
     private World world;
 
     public static void main(String[] args){
@@ -67,6 +68,10 @@ public class SeaPortProgram extends JFrame implements ActionListener{
                 System.out.println("create new world button pressed");
                 getDataFile();
                 break;
+            case "sort options":
+                System.out.println("sort options button pressed");
+                displaySortOptions();
+                break;
             case "search options": // Runs when the user selects the search option button from the world info window.
                 System.out.println("search options button pressed");
                 displaySearchOptions();
@@ -78,7 +83,52 @@ public class SeaPortProgram extends JFrame implements ActionListener{
             case "back":
                 System.out.println("back button pressed");
                 searchResultsText.setText(""); // Clear the search results text area
+                sortResultsText.setText(""); // Clear the sort results text area
+                worldText.setText(world.displayWorldString()); // Refresh the world to reflect any sorting changes
                 displayWorld();
+                break;
+            case "sort":
+                System.out.println("sort button pressed");
+                sortWorld();
+                break;
+            /*
+             * The following cases are used when the user selects a sort category button to display the correct sort options for that category  
+             */
+            case "All":
+                System.out.println("All button selected");
+                sortOptionButtonsPanel.removeAll();
+                sortOptionButtonsPanel.add(retrieveSortOptionPanel(actionCommand));
+                this.pack();
+                break;
+            case "SeaPorts":
+                System.out.println("SeaPorts button selected");
+                sortOptionButtonsPanel.removeAll();
+                sortOptionButtonsPanel.add(retrieveSortOptionPanel(actionCommand));
+                this.pack();
+                break;
+            case "Docks":
+                System.out.println("Docks button selected");
+                sortOptionButtonsPanel.removeAll();
+                sortOptionButtonsPanel.add(retrieveSortOptionPanel(actionCommand));
+                this.pack();
+                break;
+            case "Ships":
+                System.out.println("Ships button selected");
+                sortOptionButtonsPanel.removeAll();
+                sortOptionButtonsPanel.add(retrieveSortOptionPanel(actionCommand));
+                this.pack();
+                break;
+            case "Persons":
+                System.out.println("Persons button selected");
+                sortOptionButtonsPanel.removeAll();
+                sortOptionButtonsPanel.add(retrieveSortOptionPanel(actionCommand));
+                this.pack();
+                break;
+            case "Jobs":
+                System.out.println("Jobs button selected");
+                sortOptionButtonsPanel.removeAll();
+                sortOptionButtonsPanel.add(retrieveSortOptionPanel(actionCommand));
+                this.pack();
                 break;
         }
     }
@@ -142,6 +192,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
 
         displayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(worldTextPanel), optionsPanel);
 
+        displayPane.setResizeWeight(1);
         this.getContentPane().add(displayPane);
         this.pack();
     }
@@ -153,12 +204,8 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         if(Files.isReadable(filePath)){
             try{
                 ArrayList<String> fileLines = (ArrayList<String>)Files.readAllLines(filePath); //Create an ArrayList containing all the lines from the data file
-//                String testString = "";
-//                for(String line: fileLines){
-//                    testString = testString + line + "\n";
-//                }
                 world = new World(fileLines);
-                worldText.setText(world.displayWorldString());
+                worldText.setText(world.displayWorldString().trim());
             } catch (IOException io){
                 /*Do nothing*/
             }
@@ -169,33 +216,126 @@ public class SeaPortProgram extends JFrame implements ActionListener{
     public void displaySortOptions(){ // Sets the content pane to show the category selection (radio buttons) and corresponding sort options for each category. Also has button to go back to world display
         this.getContentPane().removeAll(); // Clear the content pane
         JPanel sortPanel = new JPanel();
+        sortPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
         JPanel categoryButtonsPanel = new JPanel(); // select category...
-        sortOptionButtonsPanel = new JPanel(); // sort by..
+        categoryButtonsPanel.setBorder(new TitledBorder("Select Category..."));
         /*
          * Create the category select panel with radio buttons for each category: All, SeaPorts, Docks, Ships, Persons, Jobs.
          */
-        categoryArray = new String[]{"All","Seaports","Docks","Ships","Persons","Jobs"};
+        categoryArray = new String[]{"All","Ships","Persons"}; // 3 options for category
         /*
          * Create for loop to go through each entry in categoryArray, make a radio button for the button group, and add an action command to that button, add that button to the panel
          */
         categoryRadioButtons = new ButtonGroup();
         String currentCategory = categoryArray[0];
         JRadioButton tempButton = new JRadioButton(currentCategory);
+        tempButton.setActionCommand(currentCategory);
+        tempButton.addActionListener(this);
+        categoryButtonsPanel.setLayout(new GridLayout(1, 3));
         categoryRadioButtons.add(tempButton); // Add the first option to the categories panel, "All'
+        categoryButtonsPanel.add(tempButton);
         categoryRadioButtons.setSelected(tempButton.getModel(), true); // Make "All" the default category.
         for(int i = 1; i < categoryArray.length; i++){
             currentCategory = categoryArray[i];
             tempButton = new JRadioButton(currentCategory);
             tempButton.setActionCommand(currentCategory);
+            tempButton.addActionListener(this);
+            categoryButtonsPanel.add(tempButton);
             categoryRadioButtons.add(tempButton);
         }
-        categoryRadioButtons.setSelected(categoryRadioButtons.g)
-
+        sortOptionButtonsPanel = new JPanel();
+        sortOptionButtonsPanel.add(retrieveSortOptionPanel(categoryArray[0]));
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        sortPanel.add(categoryButtonsPanel,gbc);
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        sortPanel.add(sortOptionButtonsPanel, gbc);
+        sortResultsText.setText("");
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        sortPanel.add(sortResultsText, gbc);
+        /*
+         * Create panel for sort button and world display button
+        */
+        JPanel backButtonPanel = new JPanel();
+        backButtonPanel.setLayout(new GridBagLayout());
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(this);
+        backButton.setActionCommand("back");
+        backButtonPanel.add(backButton); 
+        /*
+         * Create split pane to hold the sort options panel and the button panel.  Sort option will have the resize weight.
+        */
+        JSplitPane sortDisplayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(sortPanel), backButtonPanel);
+        sortDisplayPane.setResizeWeight(1);
+        this.getContentPane().add(sortDisplayPane);
+        this.pack();
     }
 
     /*
      * Create a method to retrieve an appropriate panel with options for a particular category.  retrieveSortOptionPanel(String option)?
      */
+    public JPanel retrieveSortOptionPanel(String category){
+        JPanel categoricalSortOptionPanel = new JPanel();
+        categoricalSortOptionPanel.setBorder(new TitledBorder("Sort " + category +" By..."));
+        JRadioButton nameButton = new JRadioButton("Name");
+        nameButton.setActionCommand("name sort");
+        sortOptionRadioButtons = new ButtonGroup();
+        sortOptionRadioButtons.add(nameButton);
+        sortOptionRadioButtons.setSelected(nameButton.getModel(), true);  // All things can be sorted by name, so this will be the default sort option for every category.
+        categoricalSortOptionPanel.add(nameButton);
+        /*
+         * If the category is Ships, add sort options for draft, length, weight, and width
+        */
+        if(category.equals("Ships")){
+            JRadioButton draftButton = new JRadioButton("Draft");
+            draftButton.setActionCommand("draft sort");
+            JRadioButton lengthButton = new JRadioButton("Length");
+            lengthButton.setActionCommand("length sort");
+            JRadioButton weightButton = new JRadioButton("Weight");
+            weightButton.setActionCommand("weight sort");
+            JRadioButton widthButton = new JRadioButton("Width");
+            widthButton.setActionCommand("width sort");
+            sortOptionRadioButtons.add(draftButton);
+            sortOptionRadioButtons.add(lengthButton);
+            sortOptionRadioButtons.add(weightButton);
+            sortOptionRadioButtons.add(widthButton);
+            categoricalSortOptionPanel.add(draftButton);
+            categoricalSortOptionPanel.add(lengthButton);
+            categoricalSortOptionPanel.add(weightButton);
+            categoricalSortOptionPanel.add(widthButton);
+        } else if (category.equals("Persons")){  // If the category is persons, add sort options for skill
+            JRadioButton skillButton = new JRadioButton("Skill");
+            skillButton.setActionCommand("skill sort");
+            sortOptionRadioButtons.add(skillButton);
+            categoricalSortOptionPanel.add(skillButton);
+        }
+        JPanel returnPanel = new JPanel();
+        returnPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        JButton sortButton = new JButton("Sort");
+        sortButton.setActionCommand("sort");
+        sortButton.addActionListener(this);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        returnPanel.add(categoricalSortOptionPanel, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        returnPanel.add(sortButton, gbc);
+        return returnPanel;
+    }
+    
+    public void sortWorld(){
+        sortResultsText.setText("");  // make sure the sort results start off blank.
+        
+        String sortCategory = categoryRadioButtons.getSelection().getActionCommand(); // identify the selected category button by the action command string
+        String sortOption = sortOptionRadioButtons.getSelection().getActionCommand(); // identify the sorting option button by the action command string
+        world.categorizedSort(sortCategory, sortOption);
+        sortResultsText.setText(sortOption + " " + sortCategory +  " lowest to highest...");
+        this.pack();
+    }
     
     public void displaySearchOptions(){ // Sets the content pane to show search options and a text area for search results.  Also has a button to go back to the previous window.
         this.getContentPane().removeAll();  // Clear the content pane

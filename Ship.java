@@ -28,10 +28,10 @@ public class Ship extends Thing{
 
     public Ship(String name, Scanner scannerLine){
         super(name, scannerLine);
-        draft = scannerLine.nextDouble();
-        length = scannerLine.nextDouble();
         weight = scannerLine.nextDouble();
+        length = scannerLine.nextDouble();
         width = scannerLine.nextDouble();
+        draft = scannerLine.nextDouble();
 
         jobs = new ArrayList<>();
     }
@@ -90,5 +90,22 @@ public class Ship extends Thing{
         }
 
         return searchResult;
+    }
+    
+    public void sortJobsByName(){
+        Collections.sort(jobs, new NameComparator());
+    }
+    
+    public double getDraft(){
+        return draft;
+    }
+    public double getLength(){
+        return length;
+    }
+    public double getWeight(){
+        return weight;
+    }
+    public double getWidth(){
+        return width;
     }
 }
