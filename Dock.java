@@ -4,6 +4,7 @@
  *  Author: Sean Filer
  *  Purpose: Contained by a SeaPort.  Contains a ship if occupied, contains nothing otherwise.
  */
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.*;
 
 public class Dock extends Thing{
@@ -51,6 +52,15 @@ public class Dock extends Thing{
             dockString = dockString  + "\n        Current Ship: " + currentShip.toString();
         }
         return dockString;
+    }
+
+    public DefaultMutableTreeNode getDockNode(){
+        DefaultMutableTreeNode dockNode = new DefaultMutableTreeNode(getName());
+        if(occupied){
+            dockNode.add(currentShip.getNode());
+        }
+
+        return dockNode;
     }
 
     public String toString(){

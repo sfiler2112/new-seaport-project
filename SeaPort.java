@@ -5,6 +5,7 @@
  *  Purpose: Contained by a World object.  Contains a list of docks, ships, persons, and has a queue for ships that need to be worked.
  */
 
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.*;
 
 public class SeaPort extends Thing{
@@ -13,16 +14,6 @@ public class SeaPort extends Thing{
     ArrayList<Ship> shipQueue;
     ArrayList<Person> persons;
     World world;
-    
-//    public SeaPort(Scanner scannerLine, World world){
-//        super(scannerLine);
-//        this.world = world;
-//
-//        docks = new ArrayList<>();
-//        ships = new ArrayList<>();
-//        shipQueue = new ArrayList<>();
-//        persons = new ArrayList<>();
-//    }
 
     public SeaPort(String name, Scanner scannerLine, World world){
         super(name, scannerLine);
@@ -151,10 +142,6 @@ public class SeaPort extends Thing{
         Collections.sort(ships, new NameComparator());
         Collections.sort(shipQueue, new NameComparator());
         Collections.sort(persons, new NameComparator());
-//        
-//        for(Ship currentShip: ships){
-//            currentShip.sortJobsByName();
-//        }
     }
     
     public String displayPortString(){
@@ -182,6 +169,60 @@ public class SeaPort extends Thing{
     public String toString(){
         String portString = "SeaPort: " + super.toString();
         return portString;
+    }
+
+    public String displayShips(){ // Method used to display ships after they have been selected as a sort category and sorted.
+        String shipsString = "";
+        if(!ships.isEmpty()){
+            shipsString = "Ships at Port " + this.getName() + ":";
+            for(Ship currentShip: ships){
+                shipsString = shipsString + "\n   " + currentShip.toString();
+            }
+        }
+
+        return shipsString;
+    }
+
+    public String displayPersons(){
+        String personsString = "";
+        if(!persons.isEmpty()){
+            personsString = "Persons at Port " + this.getName() + ":";
+            for(Person currentPerson: persons){
+                personsString = personsString + "\n   " + currentPerson.toString();
+            }
+        }
+        return personsString;
+    }
+
+    public DefaultMutableTreeNode getPortNode(){
+        DefaultMutableTreeNode portNode = new DefaultMutableTreeNode(getName());
+        DefaultMutableTreeNode docksNode = new DefaultMutableTreeNode("Docks");
+        DefaultMutableTreeNode shipsNode = new DefaultMutableTreeNode("Ships");
+        DefaultMutableTreeNode shipQueueNode = new DefaultMutableTreeNode("Queue");
+        DefaultMutableTreeNode personsNode = new DefaultMutableTreeNode("Persons");
+
+        for(Dock currentDock: docks){
+            docksNode.add(currentDock.getDockNode());
+        }
+
+        for(Ship currentShip: ships){
+            shipsNode.add(currentShip.getNode());
+        }
+
+        for(Ship currentShip: shipQueue){
+            shipQueueNode.add(currentShip.getNode());
+        }
+
+        for(Person currentPerson: persons){
+            personsNode.add(currentPerson.getNode());
+        }
+
+        portNode.add(docksNode);
+        portNode.add(shipsNode);
+        portNode.add(shipQueueNode);
+        portNode.add(personsNode);
+
+        return portNode;
     }
 
     public void setWorld(World world){

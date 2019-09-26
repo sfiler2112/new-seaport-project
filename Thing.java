@@ -1,4 +1,5 @@
   
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.*;
 
 public class Thing implements Comparable<Thing> {
@@ -11,12 +12,6 @@ public class Thing implements Comparable<Thing> {
         /* Default constructor, does nothing */
     }
 
-//    public Thing(Scanner scannerLine){
-//        this.name = scannerLine.next();
-//        this.index = scannerLine.nextInt();
-//        this.parent = scannerLine.nextInt();
-//    }
-//
     public Thing(String name, Scanner scannerLine){
         this.name = name;
         this.parent = scannerLine.nextInt();
@@ -26,9 +21,9 @@ public class Thing implements Comparable<Thing> {
         return name.compareTo(otherThing.getName());
     }
 
-//    public int getIndex(){
-//        return index;
-//    }
+    public DefaultMutableTreeNode getNode(){
+        return new DefaultMutableTreeNode(name);
+    }
 
     public String getName(){
         return name;

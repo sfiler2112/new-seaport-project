@@ -29,6 +29,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
     private JPanel sortOptionButtonsPanel; // Will hold sort options depending on the category selected.  Updated with the method retrieveSortOptionButtonsPanel(String category)
     private ButtonGroup sortOptionRadioButtons; // initialized in retrieveSortOptionButtonsPanel();
     private World world;
+    private JTree worldTree;
 
     public static void main(String[] args){
         SeaPortProgram programMain = new SeaPortProgram();
@@ -147,6 +148,12 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         this.pack();
     }
 
+    public void displayWorldTree(){  // Sets the content pane to display the world as a tree.  Will replace displayWorld().
+        this.getContentPane().removeAll();
+
+
+    }
+
     public void displayWorld(){ // Sets the content pane to display the newly built world and additional options
         this.getContentPane().removeAll();
 
@@ -156,11 +163,11 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         GridBagConstraints gbc = new GridBagConstraints();
 
         /*
-         * Create panel to hold the world text.
+         * Create panel to hold the world text. or tree???
          */
 
         JPanel worldTextPanel = new JPanel();
-        worldTextPanel.add(worldText);
+        worldTextPanel.add(worldTree);
 
         /*
          * Create the search, sort, and create new world buttons, add them to the options panel.
@@ -205,6 +212,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
             try{
                 ArrayList<String> fileLines = (ArrayList<String>)Files.readAllLines(filePath); //Create an ArrayList containing all the lines from the data file
                 world = new World(fileLines);
+                worldTree = new JTree(world.getWorldRoot());
                 worldText.setText(world.displayWorldString().trim());
             } catch (IOException io){
                 /*Do nothing*/
@@ -333,7 +341,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         String sortCategory = categoryRadioButtons.getSelection().getActionCommand(); // identify the selected category button by the action command string
         String sortOption = sortOptionRadioButtons.getSelection().getActionCommand(); // identify the sorting option button by the action command string
         world.categorizedSort(sortCategory, sortOption);
-        sortResultsText.setText(sortOption + " " + sortCategory +  " lowest to highest...");
+        sortResultsText.setText(world.displayCategory(sortCategory));
         this.pack();
     }
     

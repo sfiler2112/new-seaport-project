@@ -1,3 +1,4 @@
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.*;
 
 public class World extends Thing{
@@ -174,6 +175,31 @@ public class World extends Thing{
                 break;
         }
     }
+
+    public String displayCategory(String sortCategory){
+        /*
+         * Display the desired category's contents.
+         */
+        String categoryString = "";
+        switch(sortCategory){
+            case "All":
+                categoryString = displayWorldString();
+                break;
+            case "Ships":
+                for(SeaPort currentPort: ports){
+                    categoryString = categoryString + currentPort.displayShips();
+                }
+                break;
+            case "Persons":
+                for(SeaPort currentPort: ports){
+                    categoryString = categoryString + currentPort.displayPersons();
+                }
+                break;
+            default:
+                break;
+        }
+        return categoryString;
+    }
     
 
     public String displayWorldString(){
@@ -184,6 +210,20 @@ public class World extends Thing{
         }
         
         return worldString;
+    }
+
+    public DefaultMutableTreeNode getWorldRoot(){
+        DefaultMutableTreeNode worldRoot = new DefaultMutableTreeNode("Earth");
+        DefaultMutableTreeNode portNodes = new DefaultMutableTreeNode("Ports");
+        /*
+         * Add each port's return value for the tree node they must generate to the world's port node.
+         */
+        for(SeaPort currentPort: ports){
+            portNodes.add(currentPort.getPortNode());
+        }
+
+        worldRoot.add(portNodes);
+        return worldRoot;
     }
 
     public HashMap<Integer, Thing> getWorldHashMap(){
