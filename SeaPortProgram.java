@@ -9,6 +9,8 @@
  */
 
 import javax.swing.*;
+import javax.swing.tree.*;
+import javax.swing.event.*;
 import javax.swing.border.*;
 import java.awt.event.*;
 import java.awt.*;
@@ -16,7 +18,7 @@ import java.nio.file.*;
 import java.io.IOException;
 import java.util.*;
 
-public class SeaPortProgram extends JFrame implements ActionListener{
+public class SeaPortProgram extends JFrame implements ActionListener, TreeSelectionListener{
 
     private Path filePath; // holds the path for the file selected by the user.
     private JTextArea worldText = new JTextArea(); //holds the world's toString return value
@@ -36,7 +38,7 @@ public class SeaPortProgram extends JFrame implements ActionListener{
     }
 
     public SeaPortProgram(){ //This constructor will set up the initial window seen by the user when the program starts.
-        super("Sea Port Program");
+        super(" Sea Port Program");
 
         this.setVisible(true);
         this.setLocationRelativeTo(null);
@@ -45,6 +47,10 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         getDataFile();
     }
 
+    public void valueChanged(TreeSelectionEvent treeSelected){
+        this.pack();
+    }
+    
     public void actionPerformed(ActionEvent buttonPressed){ //Runs when the user presses a button.
         String actionCommand = buttonPressed.getActionCommand();
 
@@ -148,12 +154,6 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         this.pack();
     }
 
-    public void displayWorldTree(){  // Sets the content pane to display the world as a tree.  Will replace displayWorld().
-        this.getContentPane().removeAll();
-
-
-    }
-
     public void displayWorld(){ // Sets the content pane to display the newly built world and additional options
         this.getContentPane().removeAll();
 
@@ -163,11 +163,11 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         GridBagConstraints gbc = new GridBagConstraints();
 
         /*
-         * Create panel to hold the world text. or tree???
+         * Create panel to hold the world tree
          */
 
-        JPanel worldTextPanel = new JPanel();
-        worldTextPanel.add(worldTree);
+        JPanel worldTreePanel = new JPanel();
+        worldTreePanel.add(worldTree);
 
         /*
          * Create the search, sort, and create new world buttons, add them to the options panel.
@@ -196,9 +196,11 @@ public class SeaPortProgram extends JFrame implements ActionListener{
         /*
          *  Add world text panel and options panel to the display pane.
          */
-
-        displayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(worldTextPanel), optionsPanel);
-
+        JScrollPane worldTreeScrollPane = new JScrollPane(worldTreePanel);
+        worldTreeScrollPane.getViewport().setPreferredSize(new Dimension(300,400));
+//        worldTreeScrollPane.setMinimumSize(new Dimension(75,150));
+        displayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, worldTreeScrollPane, optionsPanel);
+        displayPane.setSize(75, 150);
         displayPane.setResizeWeight(1);
         this.getContentPane().add(displayPane);
         this.pack();
@@ -212,7 +214,8 @@ public class SeaPortProgram extends JFrame implements ActionListener{
             try{
                 ArrayList<String> fileLines = (ArrayList<String>)Files.readAllLines(filePath); //Create an ArrayList containing all the lines from the data file
                 world = new World(fileLines);
-                worldTree = new JTree(world.getWorldRoot());
+                DefaultTreeModel worldTreeModel = new DefaultTreeModel(world.getWorldRoot());
+                worldTree = new JTree(worldTreeModel);
                 worldText.setText(world.displayWorldString().trim());
             } catch (IOException io){
                 /*Do nothing*/

@@ -201,27 +201,30 @@ public class SeaPort extends Thing{
         DefaultMutableTreeNode shipQueueNode = new DefaultMutableTreeNode("Queue");
         DefaultMutableTreeNode personsNode = new DefaultMutableTreeNode("Persons");
 
-        for(Dock currentDock: docks){
-            docksNode.add(currentDock.getDockNode());
+        if(!docks.isEmpty()){
+            for(Dock currentDock: docks){
+                docksNode.add(currentDock.getDockNode());
+            }
+            portNode.add(docksNode);
         }
-
-        for(Ship currentShip: ships){
-            shipsNode.add(currentShip.getNode());
+        if(!ships.isEmpty()){
+            for(Ship currentShip: ships){
+                shipsNode.add(currentShip.getNode());
+            }
+            portNode.add(shipsNode);
         }
-
-        for(Ship currentShip: shipQueue){
-            shipQueueNode.add(currentShip.getNode());
+        if(!shipQueue.isEmpty()){
+            for(Ship currentShip: shipQueue){
+                shipQueueNode.add(currentShip.getNode());
+            }
+            portNode.add(shipQueueNode);
         }
-
-        for(Person currentPerson: persons){
-            personsNode.add(currentPerson.getNode());
+        if(!persons.isEmpty()){
+            for(Person currentPerson: persons){
+                personsNode.add(currentPerson.getNode());
+            }
+            portNode.add(personsNode);
         }
-
-        portNode.add(docksNode);
-        portNode.add(shipsNode);
-        portNode.add(shipQueueNode);
-        portNode.add(personsNode);
-
         return portNode;
     }
 
