@@ -1,11 +1,16 @@
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Scanner;
 
 public class World extends Thing{
 
     private ArrayList<SeaPort> ports;
     private PortTime time;
     private HashMap<Integer,Thing> worldHashMap;
+    private JPanel jobProgressBarPanel;
     
     public World(ArrayList<String> fileLines){
         Scanner lineScanner;
@@ -19,6 +24,8 @@ public class World extends Thing{
             readLine(lineScanner);
         }
     }
+
+
 
     private void readLine(Scanner scannerLine){
         String objectIdentifier;
@@ -96,7 +103,7 @@ public class World extends Thing{
                 case "job":
                     objectName = scannerLine.next();
                     objectIndex = scannerLine.nextInt();
-                    Job job = new Job(objectName, scannerLine);
+                    Job job = new Job(objectName, objectIndex, scannerLine);
                     Ship jobShip = (Ship) worldHashMap.get(job.getParent());  // Find the parent Ship for the job
                     jobShip.addJob(job); // add the job to its ship
                     worldHashMap.put(objectIndex, job); // Add job to the worldHashMap.  Index is between 60000-69999
@@ -228,5 +235,9 @@ public class World extends Thing{
 
     public HashMap<Integer, Thing> getWorldHashMap(){
         return worldHashMap;
+    }
+
+    public ArrayList<SeaPort> getPorts(){
+        return ports;
     }
 }

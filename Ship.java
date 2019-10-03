@@ -4,7 +4,12 @@
  *  Author: Sean Filer
  *  Purpose: Ancestor class for CargoShip and PassengerShip.  Contained by a 
  */
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Ship extends Thing{
     private PortTime arrivalTime;
@@ -14,6 +19,9 @@ public class Ship extends Thing{
     private double weight;
     private double width;
     private ArrayList<Job> jobs;
+    private CountDownLatch doneSignal;
+    private Dock currentDock;
+    private ReentrantLock shipLock = new ReentrantLock();
     
 //    public Ship(Scanner scannerLine){
 //        super(scannerLine);
@@ -35,7 +43,34 @@ public class Ship extends Thing{
 
         jobs = new ArrayList<>();
     }
-    
+
+    public void run(){
+        if(!jobs.isEmpty()){
+            doneSignal = new CountDownLatch(jobs.size());
+            for(Job currentJob: jobs){
+                currentJob.setCountDownLatch(doneSignal);
+                currentJob.prepareToStart();
+            }
+            waitForJobsToFinish();
+        } else {
+            System.out.println("ship had no jobs to start with: " + getName());
+            currentDock.makeAvailable();
+        }
+    }
+
+    public void waitForJobsToFinish(){
+        shipLock.lock();
+        try{
+            doneSignal.await();
+        } catch (InterruptedException ie) {
+            /*Do nothing*/
+        } finally {
+            currentDock.makeAvailable();
+            shipLock.unlock();
+        }
+    }
+
+
     public void addJob(Job newJob){
         jobs.add(newJob);
     }
@@ -107,5 +142,15 @@ public class Ship extends Thing{
     }
     public double getWidth(){
         return width;
+    }
+
+    public ArrayList<Job> getJobs(){
+        return jobs;
+    }
+
+    public void setCurrentDock(Dock dock){
+        this.currentDock = dock;
+        Thread shipThread = new Thread(this);
+        shipThread.start();
     }
 }

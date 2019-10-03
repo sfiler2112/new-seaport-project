@@ -2,9 +2,9 @@
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.util.*;
 
-public class Thing implements Comparable<Thing> {
+public class Thing implements Comparable<Thing>, Runnable {
 
-//    private int index;
+    private int index;
     private String name;
     private int parent;
     
@@ -17,6 +17,10 @@ public class Thing implements Comparable<Thing> {
         this.parent = scannerLine.nextInt();
     }
 
+    public void run(){
+        /* do nothing */
+    }
+
     public int compareTo(Thing otherThing){
         return name.compareTo(otherThing.getName());
     }
@@ -27,6 +31,14 @@ public class Thing implements Comparable<Thing> {
 
     public String getName(){
         return name;
+    }
+
+    public void setIndex(int index){
+        this.index = index;
+    }
+
+    public int getIndex(){
+        return index;
     }
 
     public int getParent(){

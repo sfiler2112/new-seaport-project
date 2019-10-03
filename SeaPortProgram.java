@@ -25,13 +25,15 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
     private JTextArea searchResultsText = new JTextArea(); // holds the search results for a name, index, or skill
     private JTextField searchTargetField; // initialized in displaySearchOptions(), user enters the search target in this field
     private ButtonGroup searchRadioButtons; // initialized in displaySearchOptions(), user selects the type of search to run from these options
-    String categoryArray[];  // initialized in displaySortOptions(), sets the categories that require buttons
+    private String categoryArray[];  // initialized in displaySortOptions(), sets the categories that require buttons
     private ButtonGroup categoryRadioButtons; // initialized in displaySortOptions(), user selects the category to sort from these options
     private JTextArea sortResultsText = new JTextArea();  // holds the sort results for a category and sort-by option
     private JPanel sortOptionButtonsPanel; // Will hold sort options depending on the category selected.  Updated with the method retrieveSortOptionButtonsPanel(String category)
     private ButtonGroup sortOptionRadioButtons; // initialized in retrieveSortOptionButtonsPanel();
     private World world;
     private JTree worldTree;
+    private DefaultTreeModel worldTreeModel;
+    private JPanel optionsPanel;
 
     public static void main(String[] args){
         SeaPortProgram programMain = new SeaPortProgram();
@@ -65,8 +67,12 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
                 if(selectionResult==JFileChooser.APPROVE_OPTION){
                     System.out.println("selected file");
                     filePath = Paths.get(fileChooser.getSelectedFile().getAbsolutePath());
-                    buildWorld();
-                    displayWorld();
+                    try{
+                        buildWorld();
+                    } finally {
+                        displayWorld();
+                    }
+
                 } else {
                     System.out.println("did not select file");
                 }
@@ -91,12 +97,21 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
                 System.out.println("back button pressed");
                 searchResultsText.setText(""); // Clear the search results text area
                 sortResultsText.setText(""); // Clear the sort results text area
-                worldText.setText(world.displayWorldString()); // Refresh the world to reflect any sorting changes
+                worldTreeModel = new DefaultTreeModel(world.getWorldRoot());
+                worldTree = new JTree(worldTreeModel); // Refresh the world tree to reflect any sorting changes
                 displayWorld();
                 break;
             case "sort":
                 System.out.println("sort button pressed");
                 sortWorld();
+                break;
+            case "reset world":
+                System.out.println("reset world button pressed");
+                buildWorld();
+                displayWorld();
+                break;
+            case "start jobs":
+                System.out.println("start jobs button pressed");
                 break;
             /*
              * The following cases are used when the user selects a sort category button to display the correct sort options for that category  
@@ -156,9 +171,9 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
 
     public void displayWorld(){ // Sets the content pane to display the newly built world and additional options
         this.getContentPane().removeAll();
-
-        JSplitPane displayPane; // This will hold the world text panel and a panel with option buttons
-        JPanel optionsPanel = new JPanel(); // Holds the option buttons for search and create new world
+        JSplitPane treeAndJobPane; // This will hold the world tree panel and job progress bar panel.
+        JSplitPane displayPane; // This will hold the tree and job split pane and a panel with option buttons
+        optionsPanel = new JPanel(); // Holds the option buttons for search and create new world
         optionsPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
@@ -168,6 +183,11 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
 
         JPanel worldTreePanel = new JPanel();
         worldTreePanel.add(worldTree);
+
+        /*
+         * Create panel to hold the job progress bars.
+         */
+        JPanel jobProgressBarPanel = buildJobProgressBarPanel();
 
         /*
          * Create the search, sort, and create new world buttons, add them to the options panel.
@@ -194,12 +214,19 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
         optionsPanel.add(createNewWorldButton, gbc);
 
         /*
-         *  Add world text panel and options panel to the display pane.
+         * Add world tree and job progress bars panels to treeAndJobPane
          */
         JScrollPane worldTreeScrollPane = new JScrollPane(worldTreePanel);
         worldTreeScrollPane.getViewport().setPreferredSize(new Dimension(300,400));
+        JScrollPane jobProgressScrollPane = new JScrollPane(jobProgressBarPanel);
+        treeAndJobPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, worldTreeScrollPane, jobProgressScrollPane);
+
+        /*
+         *  Add treeAndJobPane and options panel to the display pane.
+         */
+
 //        worldTreeScrollPane.setMinimumSize(new Dimension(75,150));
-        displayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, worldTreeScrollPane, optionsPanel);
+        displayPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, treeAndJobPane, optionsPanel);
         displayPane.setSize(75, 150);
         displayPane.setResizeWeight(1);
         this.getContentPane().add(displayPane);
@@ -214,7 +241,7 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
             try{
                 ArrayList<String> fileLines = (ArrayList<String>)Files.readAllLines(filePath); //Create an ArrayList containing all the lines from the data file
                 world = new World(fileLines);
-                DefaultTreeModel worldTreeModel = new DefaultTreeModel(world.getWorldRoot());
+                worldTreeModel = new DefaultTreeModel(world.getWorldRoot());
                 worldTree = new JTree(worldTreeModel);
                 worldText.setText(world.displayWorldString().trim());
             } catch (IOException io){
@@ -478,4 +505,47 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
         }
         this.pack(); // Resize the window to fit new search results or error message in the search results text area.
     }
+
+    public JPanel buildJobProgressBarPanel(){
+        System.out.println("building job progress bar panel");
+        JPanel jobProgressPanel = new JPanel();
+        jobProgressPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        ArrayList<SeaPort> worldPorts = world.getPorts();
+
+        int portCounter = 0;
+        for(SeaPort currentPort: worldPorts){
+            gbc.gridy = portCounter;
+            gbc.gridx = 0;
+            jobProgressPanel.add(new PortPanel(currentPort));
+            Thread portThread = new Thread(currentPort);
+            portThread.start();
+            portCounter++;
+        }
+        return jobProgressPanel;
+    }
+//    public void updateOptionsPanel(){  // Called when the user selects the "Start Jobs" button.
+//        /*
+//         * Remove options for sort and search, add option for resetting the current world
+//         */
+//
+//        optionsPanel.removeAll();
+//        GridBagConstraints gbc = new GridBagConstraints();
+//
+//        JButton resetWorldButton = new JButton("Reset World");
+//        resetWorldButton.addActionListener(this);
+//        resetWorldButton.setActionCommand("reset world");
+//        gbc.gridy = 0;
+//        gbc.gridx = 0;
+//        optionsPanel.add(resetWorldButton, gbc);
+//
+//        JButton createNewWorldButton = new JButton("Create New World");
+//        createNewWorldButton.addActionListener(this);
+//        createNewWorldButton.setActionCommand("create new world");
+//        gbc.gridy = 0;
+//        gbc.gridx = 1;
+//        optionsPanel.add(createNewWorldButton, gbc);
+//
+//        this.pack();
+//    }
 }

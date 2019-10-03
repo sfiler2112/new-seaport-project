@@ -6,25 +6,95 @@
  */
 
 import javax.swing.tree.DefaultMutableTreeNode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Scanner;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SeaPort extends Thing{
-    ArrayList<Dock> docks;
-    ArrayList<Ship> ships;
-    ArrayList<Ship> shipQueue;
-    ArrayList<Person> persons;
-    World world;
+    private ArrayList<Dock> docks;
+    private ArrayList<Ship> ships;
+    private ArrayList<Ship> shipQueue;
+    private ArrayList<Person> persons;
+    private PortPanel portPanel;
+    private World world;
+    private ReentrantLock portLock = new ReentrantLock();
+    private Condition docksAvailable;
 
     public SeaPort(String name, Scanner scannerLine, World world){
         super(name, scannerLine);
         this.world = world;
+        docksAvailable = portLock.newCondition();
         docks = new ArrayList<>();
         ships = new ArrayList<>();
         shipQueue = new ArrayList<>();
         persons = new ArrayList<>();
     }
 
-    
+    public void run(){
+        portPanel.update(docks);
+        for(Dock currentDock: docks){
+            if(currentDock.isOccupied()){
+                currentDock.getShip().setCurrentDock(currentDock);  // set the current dock for ships that were assigned to a dock from the input file.
+            }
+        }
+        if(!shipQueue.isEmpty()){
+            serviceNextShipInQue();
+        }
+    }
+
+    public void serviceNextShipInQue(){
+        /*
+         * Take the ship from the front of the ship queue and take the first dock that's available from docks.
+         * If no docks are available, will wait on a signal for condition docksAvailable.
+         */
+        System.out.println("service next ship in que at port " + getName());
+        portLock.lock();
+        while(allDocksOccupied()){
+            try{
+                System.out.println("Guess all the docks are occupied!");
+                docksAvailable.await();
+                System.out.println("DocksAvailable signal received!");
+            } catch (InterruptedException ie){
+                /*Do nothing*/
+            }
+        }
+
+        try{
+            if(!shipQueue.isEmpty()){
+                Ship nextShip = shipQueue.remove(0);
+                Dock availableDock = getUnoccupiedDock();
+                availableDock.setCurrentShip(nextShip);
+                System.out.println(nextShip.getName() + " added to dock " + availableDock.getName() + " of " + getName());
+            } else {
+                System.out.println("serviceNextShipInQue() reports the shipQueue is empty!");
+            }
+
+
+        } finally {
+            System.out.println( Thread.currentThread().getName() +": unlocking portLock() from serviceNextShipInQue()");
+            portPanel.update(docks);
+            if(!shipQueue.isEmpty()){
+                serviceNextShipInQue();
+            }
+
+            portLock.unlock();
+        }
+    }
+
+    public void signalDockAvailable(){
+        portLock.lock();
+
+        try{
+            System.out.println("dock has become available");
+        } finally {
+            docksAvailable.signal();
+            portLock.unlock();
+        }
+    }
+
+
     public void addToDocks(Dock dock){
         docks.add(dock);
     }
@@ -230,5 +300,31 @@ public class SeaPort extends Thing{
 
     public void setWorld(World world){
         this.world = world;
+    }
+
+    public ArrayList<Dock> getDocks(){
+        return docks;
+    }
+
+    public void setPortPanel(PortPanel portPanel){
+        this.portPanel = portPanel;
+    }
+
+    public boolean allDocksOccupied(){ // Checks if all the docks at this port are currently occupied.  If any are not occupied, return false.
+        for(Dock currentDock: docks){
+            if(!currentDock.isOccupied()){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Dock getUnoccupiedDock(){
+        for(Dock currentDock: docks){
+            if(!currentDock.isOccupied()){
+                return currentDock;
+            }
+        }
+        return null;
     }
 }
