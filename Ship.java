@@ -45,20 +45,23 @@ public class Ship extends Thing{
     }
 
     public void run(){
+        System.out.println("Thread " + Thread.currentThread().getName() + " started.");
         if(!jobs.isEmpty()){
+            System.out.println("number of jobs for " + getName() +": " + jobs.size());
             doneSignal = new CountDownLatch(jobs.size());
             for(Job currentJob: jobs){
                 currentJob.setCountDownLatch(doneSignal);
-                currentJob.prepareToStart();
             }
             waitForJobsToFinish();
         } else {
             System.out.println("ship had no jobs to start with: " + getName());
             currentDock.makeAvailable();
         }
+        System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
     }
 
     public void waitForJobsToFinish(){
+        System.out.println("Waiting for " + getName() + " jobs to finish");
         shipLock.lock();
         try{
             doneSignal.await();
@@ -150,7 +153,7 @@ public class Ship extends Thing{
 
     public void setCurrentDock(Dock dock){
         this.currentDock = dock;
-        Thread shipThread = new Thread(this);
+        Thread shipThread = new Thread(this, this.getName());
         shipThread.start();
     }
 }

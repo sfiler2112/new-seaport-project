@@ -18,6 +18,7 @@ public class JobSwingWorker extends SwingWorker<Void, Long>{
     private double duration;
     private JPanel panel;
     JProgressBar progressBar;
+    private int progress;
 
     public Void doInBackground(){
         System.out.println("Starting JobSwingWorker.doInBackground() for " + jobThing.getName());
@@ -26,7 +27,7 @@ public class JobSwingWorker extends SwingWorker<Void, Long>{
         while(progress < 100){
             try{
                 if(progress%10 == 0){
-                    System.out.println(jobThing.getName() + "progress = " + progress);
+                    System.out.println(jobThing.getName() + "progress = " + progress + "... thread info: " + Thread.currentThread().getName());
                 }
 
                 Thread.sleep((long) (duration * 10));

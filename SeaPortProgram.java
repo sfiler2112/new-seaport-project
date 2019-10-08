@@ -514,13 +514,18 @@ public class SeaPortProgram extends JFrame implements ActionListener, TreeSelect
         ArrayList<SeaPort> worldPorts = world.getPorts();
 
         int portCounter = 0;
+        /*
+         * For each port in the world, check to see if it has docks and ships. If it does, a jobProgressPanel will be created.
+         */
         for(SeaPort currentPort: worldPorts){
             gbc.gridy = portCounter;
             gbc.gridx = 0;
-            jobProgressPanel.add(new PortPanel(currentPort));
-            Thread portThread = new Thread(currentPort);
-            portThread.start();
-            portCounter++;
+            if(!currentPort.getDocks().isEmpty() && !currentPort.getShips().isEmpty()){
+                jobProgressPanel.add(new PortPanel(currentPort));
+                Thread portThread = new Thread(currentPort, currentPort.getName());
+                portThread.start();
+                portCounter++;
+            }
         }
         return jobProgressPanel;
     }

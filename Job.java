@@ -40,8 +40,8 @@ public class Job extends Thing {
 
         finished = false;
         shipNotDocked = true;
-        jobThread = new Thread(this, this.getName());
-        jobThread.start();
+//        jobThread = new Thread(this, this.getName());
+//        jobThread.start();
     }
 
     public void run(){
@@ -94,6 +94,7 @@ public class Job extends Thing {
 
 
         try{
+            System.out.println(getName() + " finished! using countDown()...");
             doneSignal.countDown();
 
         } finally {
@@ -106,7 +107,7 @@ public class Job extends Thing {
         jobLock.lock();
 
         try{
-            System.out.println(getName() + " has finished, sinaling jobFinished...");
+            System.out.println(getName() + " has finished, signaling jobFinished...");
             finished = true;
         } finally {
             jobFinished.signal();

@@ -104,6 +104,8 @@ public class World extends Thing{
                     objectName = scannerLine.next();
                     objectIndex = scannerLine.nextInt();
                     Job job = new Job(objectName, objectIndex, scannerLine);
+                    Thread jobThread = new Thread(job, job.getName());
+                    jobThread.start();
                     Ship jobShip = (Ship) worldHashMap.get(job.getParent());  // Find the parent Ship for the job
                     jobShip.addJob(job); // add the job to its ship
                     worldHashMap.put(objectIndex, job); // Add job to the worldHashMap.  Index is between 60000-69999

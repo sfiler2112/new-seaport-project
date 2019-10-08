@@ -18,6 +18,8 @@ public class PortPanel  extends JPanel implements  PropertyChangeListener {
     private SeaPort port;
     private GridBagConstraints gbc = new GridBagConstraints();
     private ConcurrentHashMap<Integer, JProgressBar> progressBarMap;
+    private ConcurrentHashMap<Integer, JButton> pauseButtonMap;
+    private ConcurrentHashMap<Integer, JButton> playButtonMap;
 
     public PortPanel(SeaPort port){
         this.port = port;
@@ -40,7 +42,7 @@ public class PortPanel  extends JPanel implements  PropertyChangeListener {
     }
 
 
-    public void update(ArrayList<Dock> portDocks){
+    public synchronized void update(ArrayList<Dock> portDocks){
         System.out.println("Updateing portPanel, current occupied docks: " + portDocks);
         this.removeAll();
         if(!portDocks.isEmpty()){
@@ -56,14 +58,15 @@ public class PortPanel  extends JPanel implements  PropertyChangeListener {
 
                     Ship currentShip = currentDock.getShip();
 
-                    JLabel dockLabel = new JLabel(currentDock.getName() + " jobs:");
-                    gbc.gridx = 0;
-                    gbc.gridy = yValue;
-                    dockPanel.add(dockLabel, gbc);
-                    yValue++;
+
 
                     if(!(currentShip == null)){
                         if(!currentShip.getJobs().isEmpty()){
+                            JLabel dockLabel = new JLabel(currentDock.getName() + " jobs:");
+                            gbc.gridx = 0;
+                            gbc.gridy = yValue;
+                            dockPanel.add(dockLabel, gbc);
+                            yValue++;
                             Job[] jobsArray = currentShip.getJobs().toArray(new Job[currentShip.getJobs().size()]);
                             for(Job currentJob: jobsArray){
                                 gbc.gridy = yValue;
@@ -80,14 +83,15 @@ public class PortPanel  extends JPanel implements  PropertyChangeListener {
                                 dockPanel.add(jobProgressBar, gbc);
                                 yValue++;
                             }
+                            gbc.gridx = 1;
+                            System.out.println("current dockYValue: " + dockYValue);
+                            gbc.gridy = dockYValue;
+                            this.add(dockPanel, gbc);
+                            dockYValue++;
                         }
 
                     }
-                    gbc.gridx = 1;
-                    System.out.println("current dockYValue: " + dockYValue);
-                    gbc.gridy = dockYValue;
-                    this.add(dockPanel, gbc);
-                    dockYValue++;
+
                 }
             }
         }
@@ -97,6 +101,7 @@ public class PortPanel  extends JPanel implements  PropertyChangeListener {
 
     public JProgressBar createNewProgressBar(Job currentJob){
         JProgressBar newProgressBar = new JProgressBar(0,100);
+        System.out.println("new progress bar created for " + currentJob.getName());
         newProgressBar.setValue(0);
 
         JobSwingWorker jobSW = currentJob.getJobSW();
