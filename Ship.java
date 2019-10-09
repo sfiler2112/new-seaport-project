@@ -46,7 +46,7 @@ public class Ship extends Thing{
 
     public void run(){
         System.out.println("Thread " + Thread.currentThread().getName() + " started.");
-        if(!jobs.isEmpty()){
+        if(jobs.isEmpty()){
             System.out.println("number of jobs for " + getName() +": " + jobs.size());
             doneSignal = new CountDownLatch(jobs.size());
             for(Job currentJob: jobs){
@@ -54,8 +54,12 @@ public class Ship extends Thing{
             }
             waitForJobsToFinish();
         } else {
-            System.out.println("ship had no jobs to start with: " + getName());
-            currentDock.makeAvailable();
+            System.out.println("number of jobs for " + getName() +": " + jobs.size());
+            doneSignal = new CountDownLatch(jobs.size());
+            for(Job currentJob: jobs){
+                currentJob.setCountDownLatch(doneSignal);
+            }
+            waitForJobsToFinish();
         }
         System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
     }

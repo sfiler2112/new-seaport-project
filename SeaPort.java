@@ -21,6 +21,7 @@ public class SeaPort extends Thing{
     private World world;
     private ReentrantLock portLock = new ReentrantLock();
     private Condition docksAvailable;
+    private volatile boolean allDocksOccupied;
 
     public SeaPort(String name, Scanner scannerLine, World world){
         super(name, scannerLine);
@@ -37,60 +38,59 @@ public class SeaPort extends Thing{
         portPanel.update(docks);
         for(Dock currentDock: docks){
             if(currentDock.isOccupied()){
-                currentDock.getShip().setCurrentDock(currentDock);  // set the current dock for ships that were assigned to a dock from the input file.
+                currentDock.setCurrentShip(currentDock.getShip());  // set the current docks ship that it was assigned while being built.
             }
         }
+        /*
+         * While the shipQueue is not empty, check for any available docks.  If any are available, service the next ship in queue.
+         * Otherwise, wait for an available dock.
+         */
         while(!shipQueue.isEmpty()){
-            if(allDocksOccupied()){
+            if(areAllDocksOccupied()){
                 waitForAvailableDock();
+            } else {
+                serviceNextShipInQue();
             }
-            serviceNextShipInQue();
+
+            portPanel.update(docks);
         }
         System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
     }
-    
+
     public void waitForAvailableDock(){
+        System.out.println("waiting for available docks at " + getName());
         portLock.lock();
+
         try{
-            while(allDocksOccupied()){
-                    System.out.println("Guess all the docks are occupied!");
-                    docksAvailable.await();
-                    System.out.println("DocksAvailable signal received!");
-            } 
+            System.out.println("Guess all the docks are occupied!");
+            docksAvailable.await();
+            System.out.println("DocksAvailable signal received!");
         } catch (InterruptedException ie){
             /*Do nothing*/
         } finally {
-            System.out.println( Thread.currentThread().getName() +": unlocking portLock() from serviceNextShipInQue()");
-            portPanel.update(docks);
             portLock.unlock();
         }
-        
-        
+
     }
 
     public void serviceNextShipInQue(){
         /*
          * Take the ship from the front of the ship queue and take the first dock that's available from docks.
-         * If no docks are available, will wait on a signal for condition docksAvailable.
          */
         System.out.println("service next ship in que at port " + getName());
         portLock.lock();
-        
 
         try{
-             if(!shipQueue.isEmpty()){
-                Ship nextShip = shipQueue.remove(0);
-                Dock availableDock = getUnoccupiedDock();
-                availableDock.setCurrentShip(nextShip);
+            Ship nextShip = shipQueue.remove(0);
+            Dock availableDock = getUnoccupiedDock();
+            if(availableDock.setCurrentShip(nextShip)){
                 System.out.println(nextShip.getName() + " added to dock " + availableDock.getName() + " of " + getName());
             } else {
-                System.out.println("serviceNextShipInQue() reports the shipQueue is empty!");
+                System.out.println(nextShip.getName() + " had no jobs, was not added to dock " + availableDock.getName() + " of " + getName());
             }
-
 
         } finally {
             System.out.println( Thread.currentThread().getName() +": unlocking portLock() from serviceNextShipInQue()");
-            portPanel.update(docks);
             portLock.unlock();
         }
     }
@@ -329,7 +329,7 @@ public class SeaPort extends Thing{
         this.portPanel = portPanel;
     }
 
-    public synchronized boolean allDocksOccupied(){ // Checks if all the docks at this port are currently occupied.  If any are not occupied, return false.
+    public synchronized boolean areAllDocksOccupied(){ // Checks if all the docks at this port are currently occupied.  If any are not occupied, return false.
         System.out.println("checking if all docks are occupied");
         for(Dock currentDock: docks){
             System.out.println("checking dock " + currentDock.getName());
