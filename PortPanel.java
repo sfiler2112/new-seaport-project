@@ -8,24 +8,38 @@
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 //import java.util.concurrent.locks.Condition;
 //import java.util.concurrent.locks.ReentrantLock;
-public class PortPanel  extends JPanel{
+public class PortPanel  extends JPanel implements  PropertyChangeListener {
     private SeaPort port;
     private GridBagConstraints gbc = new GridBagConstraints();
-    private ConcurrentHashMap<Integer, JobPanel> jobPanelMap;
+    private ConcurrentHashMap<Integer, JProgressBar> progressBarMap;
+    private ConcurrentHashMap<Integer, JButton> pauseButtonMap;
+    private ConcurrentHashMap<Integer, JButton> playButtonMap;
 
     public PortPanel(SeaPort port){
         this.port = port;
         this.setBorder(new TitledBorder(port.getName()));
         this.port.setPortPanel(this);
         this.setLayout(new GridBagLayout());
-        jobPanelMap = new ConcurrentHashMap<>();
+        progressBarMap = new ConcurrentHashMap<>();
     }
 
+    public void propertyChange(PropertyChangeEvent event){
+        if(event.getPropertyName().equals("progress")){
+            /* Obtain the correct progress bar by using the event source's index
+             * and get the value that corresponds to that key in the ConcurrentHashMap
+             */
+            JobSwingWorker jobSW = (JobSwingWorker) event.getSource();
+            JProgressBar progressBar = progressBarMap.get(jobSW.getIndex());
+            progressBar.setValue((Integer)event.getNewValue());
 
+        }
+    }
 
 
     public synchronized void update(ArrayList<Dock> portDocks){
@@ -55,16 +69,18 @@ public class PortPanel  extends JPanel{
                             yValue++;
                             Job[] jobsArray = currentShip.getJobs().toArray(new Job[currentShip.getJobs().size()]);
                             for(Job currentJob: jobsArray){
-                                JobPanel currentJobPanel;
-                                if(jobPanelMap.containsKey(currentJob.getIndex())){ // If this job's index is in the ConcurrentHashMap, get that jobPanel from the map.
-                                    currentJobPanel = jobPanelMap.get(currentJob.getIndex());
-                                } else {                                            // Otherwise, create a new jobPanel and add it to the map.
-                                    currentJobPanel = new JobPanel(currentJob);
-                                    jobPanelMap.put(currentJob.getIndex(), currentJobPanel);
+                                gbc.gridy = yValue;
+                                gbc.gridx = 0;
+                                dockPanel.add(new JLabel(currentJob.getName() + ":"), gbc);
+                                JProgressBar jobProgressBar;
+                                if(progressBarMap.containsKey(currentJob.getIndex())){
+                                    jobProgressBar = progressBarMap.get(currentJob.getIndex());
+                                } else {
+                                    jobProgressBar = createNewProgressBar(currentJob);
                                 }
                                 gbc.gridy = yValue;
                                 gbc.gridx = 1;
-                                dockPanel.add(currentJobPanel, gbc);
+                                dockPanel.add(jobProgressBar, gbc);
                                 yValue++;
                             }
                             gbc.gridx = 1;
@@ -83,4 +99,17 @@ public class PortPanel  extends JPanel{
     }
 
 
+    public JProgressBar createNewProgressBar(Job currentJob){
+        JProgressBar newProgressBar = new JProgressBar(0,100);
+        System.out.println("new progress bar created for " + currentJob.getName());
+        newProgressBar.setValue(0);
+
+        JobSwingWorker jobSW = currentJob.getJobSW();
+        jobSW.addPropertyChangeListener(this);
+
+        int pbIndex = currentJob.getIndex();
+
+        progressBarMap.put(pbIndex, newProgressBar);
+        return newProgressBar;
+    }
 }

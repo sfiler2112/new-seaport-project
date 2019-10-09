@@ -102,21 +102,16 @@ public class Dock extends Thing{
         return occupied;
     }
 
-    /*
-     * The following method will return true if the current ship added has jobs and is accepted.  Otherwise, it will return false.
-     */
-    public synchronized boolean setCurrentShip(Ship newShip){
-
-        if(!newShip.getJobs().isEmpty()){
+    public synchronized void setCurrentShip(Ship newShip){
+//        dockLock.lock();
+        try{
             currentShip = newShip;
             occupied = true;
+        } finally {
             currentShip.setCurrentDock(this);
-        } else {
-            currentShip = null;
-            occupied = false;
+//            dockLock.unlock();
         }
 
-        return occupied;
     }
 
     public synchronized void makeAvailable(){

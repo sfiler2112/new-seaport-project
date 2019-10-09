@@ -16,42 +16,40 @@ public class JobSwingWorker extends SwingWorker<Void, Long>{
     private Job jobThing;
     private int index;
     private double duration;
+    private JPanel panel;
     JProgressBar progressBar;
     private int progress;
-    private volatile boolean paused;
-    private volatile boolean canceled;
 
     public Void doInBackground(){
         System.out.println("Starting JobSwingWorker.doInBackground() for " + jobThing.getName());
+        int progress = 0;
         setProgress(progress);
-        while(progress < 100 && !canceled){
-
+        while(progress < 100){
             try{
+                if(progress%10 == 0){
+                    System.out.println(jobThing.getName() + "progress = " + progress + "... thread info: " + Thread.currentThread().getName());
+                }
+
                 Thread.sleep((long) (duration * 10));
             } catch (InterruptedException ie){
                 /*Do nothing*/
                 System.out.println("is do in background being interrupted?");
             }
-
-            if(!paused){
-                progress++;
-            }
-
+            progress++;
             setProgress(progress);
         }
 
         return null;
     }
 
+    public boolean getDockLock(){
+        return true;
+    }
 
     public void done(){
         jobThing.finish();
         System.out.println("finished the job: " + jobThing.getName());
         System.out.println(Thread.currentThread().getName() + ": done with job " + jobThing.getName());
-    }
-
-    public void pause(){
-
     }
 
     public JobSwingWorker(Job job){
@@ -60,15 +58,19 @@ public class JobSwingWorker extends SwingWorker<Void, Long>{
         index = jobThing.getIndex();
         System.out.println("JobSwingWorker created! index: " + index);
         duration = jobThing.getDuration();
-        progress = 0;
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setValue(0);
     }
 
     public int getIndex(){
         return index;
     }
 
+    public void setPanel(JPanel panel){
+        this.panel = panel;
+    }
 
-    public boolean isPaused(){
-        return paused;
+    public JProgressBar getProgressBar(){
+        return progressBar;
     }
 }
