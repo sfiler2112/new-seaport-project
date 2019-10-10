@@ -102,17 +102,21 @@ public class Dock extends Thing{
         return occupied;
     }
 
-    public synchronized void setCurrentShip(Ship newShip){
-//        dockLock.lock();
-        try{
+    /*
+     * The following method will return true if the current ship added has jobs and is accepted.  Otherwise, it will return false.
+     */
+    public synchronized boolean setCurrentShip(Ship newShip){
+
+        if(!newShip.getJobs().isEmpty()){
             currentShip = newShip;
             occupied = true;
-        } finally {
-            currentShip.removeJobsWithUnmetRequirements(port.getPortSkills());
             currentShip.setCurrentDock(this);
-//            dockLock.unlock();
+        } else {
+            currentShip = null;
+            occupied = false;
         }
 
+        return occupied;
     }
 
     public synchronized void makeAvailable(){
@@ -125,10 +129,6 @@ public class Dock extends Thing{
             port.signalDockAvailable();
 //            dockLock.unlock();
         }
-    }
-
-    public SeaPort getPort(){
-        return port;
     }
 
 

@@ -22,7 +22,6 @@ public class Ship extends Thing{
     private CountDownLatch doneSignal;
     private Dock currentDock;
     private ReentrantLock shipLock = new ReentrantLock();
-    private volatile boolean allJobsStarted;
     
 //    public Ship(Scanner scannerLine){
 //        super(scannerLine);
@@ -47,68 +46,22 @@ public class Ship extends Thing{
 
     public void run(){
         System.out.println("Thread " + Thread.currentThread().getName() + " started.");
-        if(!jobs.isEmpty()){
+        if(jobs.isEmpty()){
             System.out.println("number of jobs for " + getName() +": " + jobs.size());
-            SeaPort port = currentDock.getPort();
             doneSignal = new CountDownLatch(jobs.size());
             for(Job currentJob: jobs){
-
-                currentJob.setPort(port);
                 currentJob.setCountDownLatch(doneSignal);
-
             }
-
+            waitForJobsToFinish();
         } else {
-            System.out.println("ship had no jobs to start with: " + getName());
-            currentDock.makeAvailable();
+            System.out.println("number of jobs for " + getName() +": " + jobs.size());
+            doneSignal = new CountDownLatch(jobs.size());
+            for(Job currentJob: jobs){
+                currentJob.setCountDownLatch(doneSignal);
+            }
+            waitForJobsToFinish();
         }
-        waitForJobsToFinish();
         System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
-    }
-
-//    public void reserveRequiredSkills(){
-//        shipLock.lock();
-//
-//
-//        try{
-//            while(!allJobsStarted){
-//                if(port.reserveSkilledPersons())
-//            }
-//        }
-//    }
-
-    public synchronized void removeJobsWithUnmetRequirements(ArrayList<String> portSkills){
-        ArrayList<Job> removeJobList = new ArrayList<>();
-
-        for(Job currentJob: jobs){
-            if(!hasRequiredSkills(portSkills, currentJob.getRequirements())){
-                removeJobList.add(currentJob);
-            }
-        }
-
-        for(Job removedJob: removeJobList){
-            jobs.remove(removedJob);
-        }
-    }
-
-    public synchronized boolean hasRequiredSkills(ArrayList<String> portSkills, ArrayList<String> requirements){
-        boolean skillMissing;
-
-
-
-        for(String currentRequirement: requirements){
-            skillMissing = true;
-            for(String currentSkill: portSkills){
-                if(currentSkill.equals(currentRequirement)){
-                    skillMissing = false;
-                }
-            }
-
-            if(skillMissing){
-                return false;
-            }
-        }
-        return true;
     }
 
     public void waitForJobsToFinish(){

@@ -18,6 +18,8 @@ public class JobPanel extends JPanel implements PropertyChangeListener, ActionLi
     private JButton pauseButton;
     private JButton cancelButton;
     private JobSwingWorker jobSW;
+    private JPanel buttonPanel;
+    private GridBagConstraints gbc;
 
 
     public JobPanel(Job job){
@@ -31,7 +33,7 @@ public class JobPanel extends JPanel implements PropertyChangeListener, ActionLi
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
+        gbc = new GridBagConstraints();
         JLabel jobLabel = new JLabel(job.getName() + ":");
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -55,9 +57,14 @@ public class JobPanel extends JPanel implements PropertyChangeListener, ActionLi
         cancelButton.setActionCommand("cancel");
         cancelButton.addActionListener(this);
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(pauseButton);
-        buttonPanel.add(cancelButton);
+        buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridBagLayout());
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        buttonPanel.add(pauseButton, gbc);
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        buttonPanel.add(cancelButton,gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -83,11 +90,30 @@ public class JobPanel extends JPanel implements PropertyChangeListener, ActionLi
         switch(actionCommand){
             case "pause":
                 System.out.println("pause button for " + jobSW.getIndex() + " pressed.");
+                jobSW.pause();
+                buttonPanel.removeAll();
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                buttonPanel.add(playButton, gbc);
+                gbc.gridx = 1;
+                gbc.gridy = 0;
+                buttonPanel.add(cancelButton, gbc);
+                this.revalidate();
                 break;
             case "play":
                 System.out.println("play button for " + jobSW.getIndex() + " pressed.");
+                jobSW.play();
+                buttonPanel.removeAll();
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                buttonPanel.add(pauseButton, gbc);
+                gbc.gridx = 1;
+                gbc.gridy = 0;
+                buttonPanel.add(cancelButton, gbc);
+                this.revalidate();
             case "cancel":
                 System.out.println("cancel button for " + jobSW.getIndex() + " pressed.");
+                jobSW.cancel(true);
             default:
                 break;
         }

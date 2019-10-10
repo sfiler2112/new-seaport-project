@@ -17,16 +17,11 @@ public class Job extends Thing {
     private JobSwingWorker jobSW;
     private boolean finished;
     private boolean shipNotDocked;
-    private boolean allRequirementsMet;
     private Thread jobThread;
     private ReentrantLock jobLock = new ReentrantLock();
     private Condition shipDocked;
     private Condition jobFinished;
-    private Condition personsObtained;
     private CountDownLatch doneSignal;
-    private SeaPort currentPort;
-    private volatile boolean canceled;
-    private volatile boolean started;
     
     public Job(String name, int index, Scanner scannerLine){
         super(name, scannerLine);
@@ -39,14 +34,12 @@ public class Job extends Thing {
 
         shipDocked = jobLock.newCondition();
         jobFinished = jobLock.newCondition();
-        personsObtained = jobLock.newCondition();
         this.setIndex(index);
 
 
 
         finished = false;
         shipNotDocked = true;
-        allRequirementsMet = false;
 //        jobThread = new Thread(this, this.getName());
 //        jobThread.start();
     }
@@ -60,19 +53,18 @@ public class Job extends Thing {
     public void waitForShipToDock(){
         jobLock.lock();
 
-        try{
-            while(shipNotDocked){
+        while(shipNotDocked){
+            try{
                 System.out.println(Thread.currentThread().getName() + ": still not docked, waiting...");
                 shipDocked.await();
+            } catch (InterruptedException ie){
+                /*Do nothing*/
             }
-
-        } catch (InterruptedException ie){
-            /*Do nothing*/
+        }
+        try{
+            jobSW.execute();
         } finally {
-            /*
-             * Job has docked, needs to obtain its skilled workers from the port.
-             */
-            meetSkillRequirements();
+            waitForJobToFinish();
             jobLock.unlock();
         }
     }
@@ -89,53 +81,6 @@ public class Job extends Thing {
         }
     }
 
-
-    public void obtainSkilledPersons(){
-        jobLock.lock();
-
-        try{
-            allRequirementsMet = true;
-            System.out.println(getName() + " has obtained the people needed to start progressing");
-        } finally {
-            personsObtained.signal();
-            jobLock.unlock();
-        }
-    }
-
-    public void meetSkillRequirements(){
-        jobLock.lock();
-
-        try{
-            while(!allRequirementsMet){
-                personsObtained.await();
-            }
-        } catch (InterruptedException ie) {
-            /* Do nothing */
-        } finally {
-            jobSW.execute();
-            waitForJobToFinish();
-            jobLock.unlock();
-        }
-    }
-
-    public void reserveRequiredSkills(){
-        jobLock.lock();
-
-        boolean successfulReservation;
-        try{
-
-            successfulReservation = currentPort.reservePersons(requirements);
-        } finally {
-            if(successfulReservation){
-
-            }
-        }
-    }
-
-    public void tryAgainLater(){
-
-    }
-
     public void waitForJobToFinish(){
         jobLock.lock();
 
@@ -149,7 +94,6 @@ public class Job extends Thing {
 
 
         try{
-//            releaseReservedPersons();  Release the persons at teh current port that had to be reserved while the job was progressing.
             System.out.println(getName() + " finished! using countDown()...");
             doneSignal.countDown();
 
@@ -212,21 +156,5 @@ public class Job extends Thing {
 
     public double getDuration(){
         return duration;
-    }
-
-    public ArrayList<String> getRequirements(){
-        return requirements;
-    }
-
-    public synchronized void setPort(SeaPort port){
-        currentPort = port;
-    }
-
-    public synchronized void setCanceled(boolean argState){
-        canceled = argState;
-    }
-
-    public synchronized void setStarted(){
-        started = true;
     }
 }
