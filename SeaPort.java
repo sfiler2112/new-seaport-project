@@ -41,28 +41,24 @@ public class SeaPort extends Thing{
             }
         }
         while(!shipQueue.isEmpty()){
-            serviceNextShipInQue();
+
+            if(allDocksOccupied()){
+                waitForAvailableDock();
+            } else {
+                serviceNextShipInQue();
+            }
+
         }
         System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
     }
 
-    public synchronized void serviceNextShipInQue(){
+    public void serviceNextShipInQue(){
         /*
          * Take the ship from the front of the ship queue and take the first dock that's available from docks.
          * If no docks are available, will wait on a signal for condition docksAvailable.
          */
         System.out.println("service next ship in que at port " + getName());
         portLock.lock();
-        if(allDocksOccupied()){
-            try{
-                System.out.println("Guess all the docks are occupied!");
-                docksAvailable.await();
-                System.out.println("DocksAvailable signal received!");
-            } catch (InterruptedException ie){
-                /*Do nothing*/
-            }
-        }
-
         try{
             if(!shipQueue.isEmpty()){
                 Ship nextShip = shipQueue.remove(0);
@@ -77,6 +73,20 @@ public class SeaPort extends Thing{
         } finally {
             System.out.println( Thread.currentThread().getName() +": unlocking portLock() from serviceNextShipInQue()");
             portPanel.update(docks);
+            portLock.unlock();
+        }
+    }
+
+    public void waitForAvailableDock(){
+        portLock.lock();
+        try{
+            System.out.println("Guess all the docks are occupied!");
+            docksAvailable.await();
+            System.out.println("DocksAvailable signal received!");
+        } catch (InterruptedException ie){
+            /*Do nothing*/
+        } finally {
+            System.out.println( Thread.currentThread().getName() +": unlocking portLock() from waitForAvailableDock()");
             portLock.unlock();
         }
     }
@@ -207,6 +217,22 @@ public class SeaPort extends Thing{
 
         return searchResult;
     }
+
+    public ArrayList<String> getPortSkills(){
+        /*
+         * Return a list of all the skills that are available at the Port.
+         */
+        ArrayList<String> skillList =  new ArrayList<>();
+
+        for(Person currentPerson: persons){
+            if(!skillList.contains(currentPerson.getSkill())){
+                skillList.add(currentPerson.getSkill());
+            }
+        }
+        return skillList;
+    }
+
+
     
     public void sortAllByName(){
         Collections.sort(docks, new NameComparator());

@@ -108,6 +108,7 @@ public class Dock extends Thing{
             currentShip = newShip;
             occupied = true;
         } finally {
+            currentShip.removeJobsWithUnmetRequirements(port.getPortSkills());
             currentShip.setCurrentDock(this);
 //            dockLock.unlock();
         }
@@ -124,6 +125,10 @@ public class Dock extends Thing{
             port.signalDockAvailable();
 //            dockLock.unlock();
         }
+    }
+
+    public SeaPort getPort(){
+        return port;
     }
 
 
