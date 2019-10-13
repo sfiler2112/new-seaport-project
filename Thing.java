@@ -40,6 +40,7 @@ public class Thing implements Comparable<Thing>, Runnable {
     public int getIndex(){
         return index;
     }
+    
 
     public int getParent(){
         return parent;

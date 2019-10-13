@@ -13,13 +13,14 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 //import java.util.concurrent.locks.Condition;
-//import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantLock;
 public class PortPanel  extends JPanel implements  PropertyChangeListener {
     private SeaPort port;
     private GridBagConstraints gbc = new GridBagConstraints();
     private ConcurrentHashMap<Integer, JProgressBar> progressBarMap;
     private ConcurrentHashMap<Integer, JButton> pauseButtonMap;
     private ConcurrentHashMap<Integer, JButton> playButtonMap;
+    private ReentrantLock ppLock;
 
     public PortPanel(SeaPort port){
         this.port = port;
@@ -27,6 +28,7 @@ public class PortPanel  extends JPanel implements  PropertyChangeListener {
         this.port.setPortPanel(this);
         this.setLayout(new GridBagLayout());
         progressBarMap = new ConcurrentHashMap<>();
+        ppLock = new ReentrantLock();
     }
 
     public void propertyChange(PropertyChangeEvent event){
@@ -42,60 +44,66 @@ public class PortPanel  extends JPanel implements  PropertyChangeListener {
     }
 
 
-    public synchronized void update(ArrayList<Dock> portDocks){
-        System.out.println("Updateing portPanel, current occupied docks: " + portDocks);
-        this.removeAll();
-        if(!portDocks.isEmpty()){
-            int dockYValue = 0;
-            JPanel dockPanel;
-            for(Dock currentDock: portDocks){
-                if(currentDock.isOccupied()){
-                    System.out.println("updating dock panel for: " + currentDock.getName());
-                    dockPanel = new JPanel();
-                    dockPanel.setLayout(new GridBagLayout());
+    public void update(ArrayList<Dock> portDocks){
+        ppLock.lock();
+        try{
+            this.removeAll();
+            if(!portDocks.isEmpty()){
+                int dockYValue = 0;
+                JPanel dockPanel;
+                for(Dock currentDock: portDocks){
+                    if(currentDock.isOccupied()){
+                        System.out.println("updating dock panel for: " + currentDock.getName());
+                        dockPanel = new JPanel();
+                        dockPanel.setLayout(new GridBagLayout());
 
-                    int yValue = 0; // used for setting the grid bag constraints as the for-loop progresses.
+                        int yValue = 0; // used for setting the grid bag constraints as the for-loop progresses.
 
-                    Ship currentShip = currentDock.getShip();
+                        Ship currentShip = currentDock.getShip();
 
 
 
-                    if(!(currentShip == null)){
-                        if(!currentShip.getJobs().isEmpty()){
-                            JLabel dockLabel = new JLabel(currentDock.getName() + " jobs:");
-                            gbc.gridx = 0;
-                            gbc.gridy = yValue;
-                            dockPanel.add(dockLabel, gbc);
-                            yValue++;
-                            Job[] jobsArray = currentShip.getJobs().toArray(new Job[currentShip.getJobs().size()]);
-                            for(Job currentJob: jobsArray){
-                                gbc.gridy = yValue;
+                        if(!(currentShip == null)){
+                            if(!currentShip.getJobs().isEmpty()){
+                                JLabel dockLabel = new JLabel(currentDock.getName() + " jobs:");
                                 gbc.gridx = 0;
-                                dockPanel.add(new JLabel(currentJob.getName() + ":"), gbc);
-                                JProgressBar jobProgressBar;
-                                if(progressBarMap.containsKey(currentJob.getIndex())){
-                                    jobProgressBar = progressBarMap.get(currentJob.getIndex());
-                                } else {
-                                    jobProgressBar = createNewProgressBar(currentJob);
-                                }
                                 gbc.gridy = yValue;
-                                gbc.gridx = 1;
-                                dockPanel.add(jobProgressBar, gbc);
+                                dockPanel.add(dockLabel, gbc);
                                 yValue++;
+                                Job[] jobsArray = currentShip.getJobs().toArray(new Job[currentShip.getJobs().size()]);
+                                for(Job currentJob: jobsArray){
+                                    gbc.gridy = yValue;
+                                    gbc.gridx = 0;
+                                    dockPanel.add(new JLabel(currentJob.getName() + ":"), gbc);
+                                    JProgressBar jobProgressBar;
+                                    if(progressBarMap.containsKey(currentJob.getIndex())){
+                                        jobProgressBar = progressBarMap.get(currentJob.getIndex());
+                                    } else {
+                                        jobProgressBar = createNewProgressBar(currentJob);
+                                    }
+                                    gbc.gridy = yValue;
+                                    gbc.gridx = 1;
+                                    dockPanel.add(jobProgressBar, gbc);
+                                    yValue++;
+                                }
+                                gbc.gridx = 1;
+                                System.out.println("current dockYValue: " + dockYValue);
+                                gbc.gridy = dockYValue;
+                                this.add(dockPanel, gbc);
+                                dockYValue++;
                             }
-                            gbc.gridx = 1;
-                            System.out.println("current dockYValue: " + dockYValue);
-                            gbc.gridy = dockYValue;
-                            this.add(dockPanel, gbc);
-                            dockYValue++;
+
                         }
 
                     }
-
                 }
             }
+        } finally {
+            System.out.println("Updateing portPanel, current occupied docks: " + portDocks);
+            this.revalidate();
+            ppLock.unlock();
         }
-        this.revalidate();
+        
     }
 
 

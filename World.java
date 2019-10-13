@@ -95,6 +95,7 @@ public class World extends Thing{
                     objectName = scannerLine.next();
                     objectIndex = scannerLine.nextInt();
                     Person person = new Person(objectName, scannerLine);
+                    person.setIndex(objectIndex);  // Person index is used when assigning them to jobs during program execuction.
                     SeaPort personPort = (SeaPort) worldHashMap.get(person.getParent());
                     personPort.addToPersons(person); // Add the dock to its parent SeaPort
                     worldHashMap.put(objectIndex, person); // Add person to the worldHashMap.  Index is between 50000-59999

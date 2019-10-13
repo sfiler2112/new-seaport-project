@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.*;
 
 public class SeaPort extends Thing{
     private ArrayList<Dock> docks;
@@ -21,15 +22,26 @@ public class SeaPort extends Thing{
     private World world;
     private ReentrantLock portLock = new ReentrantLock();
     private Condition docksAvailable;
+    private Condition dockRequired;
+    private ArrayList<Integer> reservedPersonIndex; // Used with reservePersons and getRequiredPerson, sent to the Job that instigates those method calls for later use releasing reserved persons.
+    private ExecutorService spoPool;
+    private SkilledPersonObtainer skilledPersonObtainer;
+    private boolean waitingForDock;
+    private ArrayList<Dock> unoccupiedDocks;
 
     public SeaPort(String name, Scanner scannerLine, World world){
         super(name, scannerLine);
         this.world = world;
         docksAvailable = portLock.newCondition();
+        dockRequired = portLock.newCondition();
         docks = new ArrayList<>();
+        unoccupiedDocks = new ArrayList<>();
         ships = new ArrayList<>();
         shipQueue = new ArrayList<>();
         persons = new ArrayList<>();
+        spoPool = Executors.newCachedThreadPool();
+        skilledPersonObtainer = new SkilledPersonObtainer(this);
+        waitingForDock = false;
     }
 
     public void run(){
@@ -38,20 +50,56 @@ public class SeaPort extends Thing{
         for(Dock currentDock: docks){
             if(currentDock.isOccupied()){
                 currentDock.getShip().setCurrentDock(currentDock);  // set the current dock for ships that were assigned to a dock from the input file.
-            }
-        }
-        while(!shipQueue.isEmpty()){
-
-            if(allDocksOccupied()){
-                waitForAvailableDock();
             } else {
-                serviceNextShipInQue();
+                unoccupiedDocks.add(currentDock);
             }
-
         }
+        int whileLoopCounter = 0;
+        while(!shipQueue.isEmpty()){// something about this while loop is stinky.  
+            whileLoopCounter++;
+            System.out.println("seaport loop number: " + whileLoopCounter);
+            serviceNextShipInQue();
+        }
+        portPanel.update(docks);
         System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
     }
+    
+    public void startSkilledPersonObtainer(Job job){
+        System.out.println(getName() + " starting spo for job: " + job.getName());
+        skilledPersonObtainer = new SkilledPersonObtainer(this);
+        skilledPersonObtainer.setJob(job);
+        spoPool.execute(skilledPersonObtainer);
+        System.out.println("spo thread executed.");
+       
+        
+    }
+    
+    public SkilledPersonObtainer getSkilledPersonObtainer(){
+        return skilledPersonObtainer;
+    }
 
+    public void assignToAvailableDock(Ship ship){
+        portLock.lock();
+        while(unoccupiedDocks.isEmpty()){
+            try{
+                docksAvailable.await();
+            } catch (InterruptedException ie){
+                /* Do nothing */
+            }
+        }
+        
+        try{
+            Dock availableDock = unoccupiedDocks.remove(0);
+            availableDock.setCurrentShip(ship);
+            System.out.println(ship.getName() + " added to dock " + availableDock.getName() + " of " + getName());
+            System.out.println("number of available docks: " + unoccupiedDocks.size());
+        } finally {
+            System.out.println( Thread.currentThread().getName() +": unlocking portLock() from assignToAvailableDock()");
+            portPanel.update(docks);
+            portLock.unlock();
+        }
+        
+    }
     public void serviceNextShipInQue(){
         /*
          * Take the ship from the front of the ship queue and take the first dock that's available from docks.
@@ -59,44 +107,43 @@ public class SeaPort extends Thing{
          */
         System.out.println("service next ship in que at port " + getName());
         portLock.lock();
+//        while(allDocksOccupied()){
+
+//        }
         try{
-            if(!shipQueue.isEmpty()){
-                Ship nextShip = shipQueue.remove(0);
-                Dock availableDock = getUnoccupiedDock();
-                availableDock.setCurrentShip(nextShip);
-                System.out.println(nextShip.getName() + " added to dock " + availableDock.getName() + " of " + getName());
-            } else {
-                System.out.println("serviceNextShipInQue() reports the shipQueue is empty!");
-            }
+            Ship nextShip = shipQueue.remove(0);
+            
+            assignToAvailableDock(nextShip);
 
 
         } finally {
             System.out.println( Thread.currentThread().getName() +": unlocking portLock() from serviceNextShipInQue()");
-            portPanel.update(docks);
             portLock.unlock();
         }
     }
 
-    public void waitForAvailableDock(){
-        portLock.lock();
-        try{
-            System.out.println("Guess all the docks are occupied!");
-            docksAvailable.await();
-            System.out.println("DocksAvailable signal received!");
-        } catch (InterruptedException ie){
-            /*Do nothing*/
-        } finally {
-            System.out.println( Thread.currentThread().getName() +": unlocking portLock() from waitForAvailableDock()");
-            portLock.unlock();
-        }
-    }
+//    public void waitForAvailableDock(){
+//        System.out.println("from waitForAvailableDock, obtain portLock");
+//        portLock.lock();
+//        try{
+//            System.out.println("Guess all the docks are occupied!");
+//            docksAvailable.await();
+//            System.out.println("DocksAvailable signal received!");
+//        } catch (InterruptedException ie){
+//            /*Do nothing*/
+//        } finally {
+//            System.out.println( Thread.currentThread().getName() +": unlocking portLock() from waitForAvailableDock()");
+//            portLock.unlock();
+//        }
+//    }
 
-    public void signalDockAvailable(){
+    public  void signalDockAvailable(Dock argDock){
+        
         System.out.println("from signalDockAvailable, obtain portLock");
         portLock.lock();
-
         try{
-            System.out.println("dock has become available");
+            System.out.println(argDock.getName() + " has become available");
+            unoccupiedDocks.add(argDock);
 //            System.out.println("are all docks occupied? " + allDocksOccupied());
         } finally {
             System.out.println("signal for docksAvailable() next line...");
@@ -233,7 +280,7 @@ public class SeaPort extends Thing{
     }
 
 
-    
+   
     public void sortAllByName(){
         Collections.sort(docks, new NameComparator());
         Collections.sort(ships, new NameComparator());
@@ -354,12 +401,16 @@ public class SeaPort extends Thing{
         return true;
     }
 
-    public Dock getUnoccupiedDock(){
+    public synchronized Dock getUnoccupiedDock(){
         for(Dock currentDock: docks){
             if(!currentDock.isOccupied()){
                 return currentDock;
             }
         }
         return null;
+    }
+    
+    public ArrayList<Person> getPersons(){
+        return persons;
     }
 }

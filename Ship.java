@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.*;
+import java.util.*;
 
 public class Ship extends Thing{
     private PortTime arrivalTime;
@@ -52,17 +54,16 @@ public class Ship extends Thing{
             SeaPort port = currentDock.getPort();
             doneSignal = new CountDownLatch(jobs.size());
             for(Job currentJob: jobs){
-
                 currentJob.setPort(port);
-                currentJob.setCountDownLatch(doneSignal);
-
+                currentJob.prepareToStart(doneSignal);
             }
+            waitForJobsToFinish();
 
         } else {
             System.out.println("ship had no jobs to start with: " + getName());
             currentDock.makeAvailable();
         }
-        waitForJobsToFinish();
+        
         System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
     }
 
@@ -77,11 +78,11 @@ public class Ship extends Thing{
 //        }
 //    }
 
-    public synchronized void removeJobsWithUnmetRequirements(ArrayList<String> portSkills){
+    public synchronized void removeJobsWithUnmetRequirements(ArrayList<Person> portPersons){
         ArrayList<Job> removeJobList = new ArrayList<>();
 
         for(Job currentJob: jobs){
-            if(!hasRequiredSkills(portSkills, currentJob.getRequirements())){
+            if(!hasRequiredSkills(portPersons, currentJob.getRequirements())){
                 removeJobList.add(currentJob);
             }
         }
@@ -91,23 +92,27 @@ public class Ship extends Thing{
         }
     }
 
-    public synchronized boolean hasRequiredSkills(ArrayList<String> portSkills, ArrayList<String> requirements){
+    public synchronized boolean hasRequiredSkills(ArrayList<Person> portPersons, ArrayList<String> requirements){
         boolean skillMissing;
 
+        ArrayList<Person> foundPortPersons = new ArrayList<>();
 
 
         for(String currentRequirement: requirements){
             skillMissing = true;
-            for(String currentSkill: portSkills){
-                if(currentSkill.equals(currentRequirement)){
+            for( Person currentPerson: portPersons){
+                if(currentPerson.getSkill().equals(currentRequirement) && !foundPortPersons.contains(currentPerson)){
                     skillMissing = false;
+                    foundPortPersons.add(currentPerson);
                 }
             }
 
             if(skillMissing){
+                System.out.println(getName() + " could not find the required skills for it's job! ");
                 return false;
             }
         }
+        System.out.println(getName() + " found the required skills for it's job! ");
         return true;
     }
 
@@ -122,6 +127,10 @@ public class Ship extends Thing{
             currentDock.makeAvailable();
             shipLock.unlock();
         }
+    }
+    
+    public void clearRequiredPersonIndex(Job finishedJob){
+        
     }
 
 

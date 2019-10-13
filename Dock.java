@@ -10,13 +10,14 @@ import javax.swing.border.TitledBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.util.Scanner;
+import java.util.concurrent.locks.*;
 
 public class Dock extends Thing{
     private Ship currentShip;
     private boolean occupied;
     private World world;
     private SeaPort port;
-//    private ReentrantLock dockLock = new ReentrantLock();
+    private ReentrantLock dockLock = new ReentrantLock();
     
 //    public Dock(Scanner scannerLine, World world){
 //        super(scannerLine);
@@ -102,28 +103,28 @@ public class Dock extends Thing{
         return occupied;
     }
 
-    public synchronized void setCurrentShip(Ship newShip){
-//        dockLock.lock();
+    public  void setCurrentShip(Ship newShip){
+        dockLock.lock();
         try{
             currentShip = newShip;
             occupied = true;
         } finally {
-            currentShip.removeJobsWithUnmetRequirements(port.getPortSkills());
+            currentShip.removeJobsWithUnmetRequirements(port.getPersons());
             currentShip.setCurrentDock(this);
-//            dockLock.unlock();
+            dockLock.unlock();
         }
 
     }
 
-    public synchronized void makeAvailable(){
-//        dockLock.lock();
+    public void makeAvailable(){
+        dockLock.lock();
         try{
             System.out.println(getName() + " is removing a ship: " + currentShip.getName());
             currentShip = null;
             occupied = false;
         } finally {
-            port.signalDockAvailable();
-//            dockLock.unlock();
+            port.signalDockAvailable(this);
+            dockLock.unlock();
         }
     }
 
