@@ -46,6 +46,7 @@ public class SeaPort extends Thing{
 
     public void run(){
         System.out.println("Thread " + Thread.currentThread().getName() + " started.");
+
         portPanel.update(docks);
         for(Dock currentDock: docks){
             if(currentDock.isOccupied()){
@@ -54,11 +55,13 @@ public class SeaPort extends Thing{
                 unoccupiedDocks.add(currentDock);
             }
         }
+        portPanel.update(docks);
         int whileLoopCounter = 0;
         while(!shipQueue.isEmpty()){// something about this while loop is stinky.  
             whileLoopCounter++;
             System.out.println("seaport loop number: " + whileLoopCounter);
             serviceNextShipInQue();
+            portPanel.update(docks);
         }
         portPanel.update(docks);
         System.out.println("Thread " + Thread.currentThread().getName() + " finished.");
@@ -95,7 +98,7 @@ public class SeaPort extends Thing{
             System.out.println("number of available docks: " + unoccupiedDocks.size());
         } finally {
             System.out.println( Thread.currentThread().getName() +": unlocking portLock() from assignToAvailableDock()");
-            portPanel.update(docks);
+
             portLock.unlock();
         }
         

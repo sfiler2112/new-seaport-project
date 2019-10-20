@@ -10,8 +10,6 @@ import java.util.Collections;
 import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.*;
-import java.util.*;
 
 public class Ship extends Thing{
     private PortTime arrivalTime;
@@ -49,9 +47,11 @@ public class Ship extends Thing{
 
     public void run(){
         System.out.println("Thread " + Thread.currentThread().getName() + " started.");
+        System.out.println("initial number number of jobs for " + getName() +": " + jobs.size());
+        SeaPort port = currentDock.getPort();
+        removeJobsWithUnmetRequirements(port.getPersons());
         if(!jobs.isEmpty()){
-            System.out.println("number of jobs for " + getName() +": " + jobs.size());
-            SeaPort port = currentDock.getPort();
+
             doneSignal = new CountDownLatch(jobs.size());
             for(Job currentJob: jobs){
                 currentJob.setPort(port);
@@ -78,18 +78,26 @@ public class Ship extends Thing{
 //        }
 //    }
 
-    public synchronized void removeJobsWithUnmetRequirements(ArrayList<Person> portPersons){
-        ArrayList<Job> removeJobList = new ArrayList<>();
+    public void removeJobsWithUnmetRequirements(ArrayList<Person> portPersons){
+        shipLock.lock();
 
-        for(Job currentJob: jobs){
-            if(!hasRequiredSkills(portPersons, currentJob.getRequirements())){
-                removeJobList.add(currentJob);
+        try{
+            ArrayList<Job> removeJobList = new ArrayList<>();
+
+            for(Job currentJob: jobs){
+                if(!hasRequiredSkills(portPersons, currentJob.getRequirements())){
+                    System.out.println(Thread.currentThread().getName() + ": " + currentJob.getName() + " added to remove list, skills not met.");
+                    removeJobList.add(currentJob);
+                }
             }
+
+            for(Job removedJob: removeJobList){
+                jobs.remove(removedJob);
+            }
+        } finally {
+            shipLock.unlock();
         }
 
-        for(Job removedJob: removeJobList){
-            jobs.remove(removedJob);
-        }
     }
 
     public synchronized boolean hasRequiredSkills(ArrayList<Person> portPersons, ArrayList<String> requirements){
@@ -104,6 +112,7 @@ public class Ship extends Thing{
                 if(currentPerson.getSkill().equals(currentRequirement) && !foundPortPersons.contains(currentPerson)){
                     skillMissing = false;
                     foundPortPersons.add(currentPerson);
+                    System.out.println(Thread.currentThread().getName() + ": " + currentPerson.getName() + " has the skill " + currentRequirement);
                 }
             }
 

@@ -109,7 +109,6 @@ public class Dock extends Thing{
             currentShip = newShip;
             occupied = true;
         } finally {
-            currentShip.removeJobsWithUnmetRequirements(port.getPersons());
             currentShip.setCurrentDock(this);
             dockLock.unlock();
         }

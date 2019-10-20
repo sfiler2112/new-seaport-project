@@ -58,10 +58,10 @@ public class Person extends Thing{
             }
         } finally {
             personLock.unlock();
-        }  
+        }
     }
     
-    public boolean isBusy(){
+    public synchronized boolean isBusy(){
         return busy;
     }
 }

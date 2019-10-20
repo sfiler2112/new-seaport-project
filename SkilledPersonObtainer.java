@@ -21,6 +21,9 @@ public class SkilledPersonObtainer implements Runnable{
     private ArrayList<Person> portPersons;
     private Thread spoThread;
     private ArrayList<Person> availablePersonList;
+    private RequestedSkillTracker jobSkillRequestTracker;
+    private boolean personWasReserved;
+    private int reservationAttempts;
     
     public SkilledPersonObtainer(SeaPort argPort){
         
@@ -30,6 +33,7 @@ public class SkilledPersonObtainer implements Runnable{
         personsFinished = obtainerLock.newCondition();
         portPersons = port.getPersons();
         successfulReservation = false;
+        reservationAttempts = 0;
     }
     
     public void run(){
@@ -43,6 +47,7 @@ public class SkilledPersonObtainer implements Runnable{
             job = argJob;
             job = argJob;
             jobRequirements = argJob.getRequirements();
+            jobSkillRequestTracker = argJob.getRequestedSkillTracker();
             spoThread = new Thread(this, "spo for " + job.getName());
             spoThread.start(); 
         } finally {
@@ -86,14 +91,20 @@ public class SkilledPersonObtainer implements Runnable{
                 for(int j = 0; j < portPersons.size(); j++){
                     System.out.println("checking portPerson " + j);
                     Person currentPerson = portPersons.get(j);
-                    if(currentRequirement.equals(currentPerson.getSkill()) && !currentPerson.isBusy()){
-                        System.out.println(currentPerson.getName() + " is not busy and has the required skill: " + currentRequirement );
-                        currentPerson.reserve();
-                        tempReservedPersonList.add(currentPerson);
-                        j = portPersons.size();
-                        failedToReserveAll = false;
+                    if(currentRequirement.equals(currentPerson.getSkill())){
+                        if(!currentPerson.isBusy()){
+                            System.out.println(currentPerson.getName() + " is not busy and has the required skill: " + currentRequirement );
+                            currentPerson.reserve();
+                            tempReservedPersonList.add(currentPerson);
+                            jobSkillRequestTracker.personAcquired();
+                            j = portPersons.size();
+                            failedToReserveAll = false;
+                        } else {
+                            failedToReserveAll = true;
+                            System.out.println(Thread.currentThread().getName() + " : person " + currentPerson.getName() +" was busy");
+                        }
                     } else {
-                        System.out.println(currentPerson.getName() + " is busy or does not have the required skill: " + currentRequirement );
+                        System.out.println(currentPerson.getName() + " does not have the required skill: " + currentRequirement );
                         failedToReserveAll = true;
                     }
                 }   
@@ -128,11 +139,18 @@ public class SkilledPersonObtainer implements Runnable{
         
     }
     
-    public  void clearReservedPersons(ArrayList<Person> argReservedPersons){
-        System.out.println(Thread.currentThread().getName() + " will now release the reserved person for each skill...");
-        for(Person currentPerson: argReservedPersons){
-            currentPerson.release();
+    public void clearReservedPersons(ArrayList<Person> argReservedPersons){
+        obtainerLock.lock();
+        try{
+            System.out.println(Thread.currentThread().getName() + " will now release the reserved person for each skill...");
+            for(Person currentPerson: argReservedPersons){
+                jobSkillRequestTracker.personReleased();
+                currentPerson.release();
+            }
+        } finally {
+            obtainerLock.unlock();
         }
+
     }
         
 
@@ -140,8 +158,16 @@ public class SkilledPersonObtainer implements Runnable{
     public void tryAgainLater(){
         obtainerLock.lock();
         System.out.println(Thread.currentThread().getName() + " will need to try again later! ;p");
+        long waitHandicap = 1000;
         try{
-            Thread.currentThread().sleep(5000);
+            reservationAttempts++;
+            if(reservationAttempts > 10 ){
+                waitHandicap = 2500;
+            } else if (reservationAttempts > 100){
+                waitHandicap = 4000;
+            }
+            System.out.println(Thread.currentThread().getName() + ": sleeping for " + String.valueOf(5000 - waitHandicap) + " millis" );
+            Thread.currentThread().sleep(5000 -  waitHandicap);
         } catch (InterruptedException ie){
             /* Do nothing*/
         } finally {
@@ -186,5 +212,17 @@ public class SkilledPersonObtainer implements Runnable{
     
     public synchronized void setSuccessfulReservation(boolean state){
         successfulReservation = state;
+    }
+
+
+    public void setPersonWasReserved(boolean state){
+        obtainerLock.lock();
+
+        try{
+            personWasReserved = state;
+        } finally {
+            obtainerLock.unlock();
+        }
+
     }
 }

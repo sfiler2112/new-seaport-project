@@ -14,9 +14,6 @@ import java.beans.PropertyChangeListener;
 
 public class JobPanel extends JPanel implements PropertyChangeListener, ActionListener {
     private JProgressBar jobProgressBar;
-    private JButton playButton;
-    private JButton pauseButton;
-    private JButton cancelButton;
     private JobSwingWorker jobSW;
 
 
@@ -43,28 +40,30 @@ public class JobPanel extends JPanel implements PropertyChangeListener, ActionLi
         /*
          * Add the buttons to the JobPanel below the jobLabel and progress bar as a button panel
          */
-        pauseButton = new JButton("Pause");
-        pauseButton.setActionCommand("pause");
-        pauseButton.addActionListener(this);
+//        pauseButton = new JButton("Pause");
+//        pauseButton.setActionCommand("pause");
+//        pauseButton.addActionListener(this);
+//
+//        playButton = new JButton("Play");
+//        playButton.setActionCommand("play");
+//        playButton.addActionListener(this);
+//
+//        cancelButton = new JButton("Cancel");
+//        cancelButton.setActionCommand("cancel");
+//        cancelButton.addActionListener(this);
+//
+//        JPanel buttonPanel = new JPanel();
+//        buttonPanel.add(pauseButton);
+//        buttonPanel.add(cancelButton);
 
-        playButton = new JButton("Play");
-        playButton.setActionCommand("play");
-        playButton.addActionListener(this);
-
-        cancelButton = new JButton("Cancel");
-        cancelButton.setActionCommand("cancel");
-        cancelButton.addActionListener(this);
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(pauseButton);
-        buttonPanel.add(cancelButton);
-
+        JobRequestTrackerPanel requestTrackerPanel = new JobRequestTrackerPanel(job.getRequestedSkillTracker());
+        job.getRequestedSkillTracker().setJobRequestTrackerPanel(requestTrackerPanel);
         gbc.gridx = 0;
         gbc.gridy = 0;
         this.add(topPanel, gbc);
         gbc.gridx = 0;
         gbc.gridy = 1;
-        this.add(buttonPanel, gbc);
+        this.add(requestTrackerPanel, gbc);
     }
 
 

@@ -30,6 +30,7 @@ public class Job extends Thing {
     private volatile boolean canceled;
     private volatile boolean started;
     private SkilledPersonObtainer spo;
+    private RequestedSkillTracker rst;
     
     public Job(String name, int index, Scanner scannerLine){
         super(name, scannerLine);
@@ -46,6 +47,7 @@ public class Job extends Thing {
         personsObtained = jobLock.newCondition();
         this.setIndex(index);
 
+        rst = new RequestedSkillTracker(this);
 
 
         finished = false;
@@ -185,6 +187,10 @@ public class Job extends Thing {
         this.jobSW = jobSW;
         System.out.println("attaching jobSW to job! index: " + this.getIndex());
         System.out.println("jobSW index: " + jobSW.getIndex());
+    }
+
+    public RequestedSkillTracker getRequestedSkillTracker(){
+        return rst;
     }
 
     public JobSwingWorker getJobSW(){
